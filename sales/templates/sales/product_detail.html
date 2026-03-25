@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ product.name }} | Multi Vendor Store</title>
+    <!-- Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f4f7fd;
+            color: #1e293b;
+            line-height: 1.5;
+        }
+
+        /* ----- NAVBAR (copied from index) ----- */
+        .navbar {
+            background: #1e293b;
+            padding: 0.9rem 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 20px -8px rgba(0,20,40,0.25);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .nav-left {
+            color: white;
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(145deg, #fbbf24, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-right a {
+            color: #f1f5f9;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1rem;
+            padding: 0.5rem 0.2rem;
+            border-bottom: 2px solid transparent;
+            transition: 0.2s;
+        }
+
+        .nav-right a:hover {
+            border-bottom-color: #f59e0b;
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .cart-badge {
+            background: #ef4444;
+            color: white;
+            padding: 0.2rem 0.6rem;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-left: 0.4rem;
+            display: inline-block;
+            box-shadow: 0 2px 8px rgba(239,68,68,0.4);
+        }
+
+        /* ----- PRODUCT DETAIL PAGE LAYOUT (Amazon style) ----- */
+        .container {
+            max-width: 1200px;
+            margin: 3rem auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            background: white;
+            padding: 3rem;
+            border-radius: 24px;
+            box-shadow: 0 15px 30px -12px rgba(0, 0, 0, 0.1);
+        }
+
+        .product-image {
+            width: 100%;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.05);
+        }
+
+        .product-image img {
+            width: 100%;
+            height: auto;
+            display: block;
+            transition: transform 0.3s;
+        }
+
+        .product-image:hover img {
+            transform: scale(1.05);
+        }
+
+        .product-info h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 1rem;
+        }
+
+        .vendor-info {
+            font-size: 1rem;
+            color: #64748b;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .vendor-info span {
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .price {
+            font-size: 2.8rem;
+            font-weight: 800;
+            color: #0d9488;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: baseline;
+        }
+        .price::before {
+            content: "₹";
+            font-size: 1.8rem;
+            margin-right: 4px;
+        }
+
+        .description {
+            font-size: 1.1rem;
+            color: #334155;
+            line-height: 1.7;
+            margin-bottom: 2.5rem;
+            padding: 1.5rem;
+            background: #f8fafc;
+            border-radius: 12px;
+            border-left: 4px solid #f59e0b;
+        }
+
+        .btn {
+            display: inline-block;
+            background: #0d9488;
+            color: white;
+            padding: 1.2rem 2.5rem;
+            text-decoration: none;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 1.2rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 8px 16px rgba(13,148,136,0.3);
+            text-align: center;
+        }
+
+        .btn:hover {
+            background: #0f766e;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 20px rgba(13,148,136,0.4);
+        }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #1e293b;
+            margin-left: 1rem;
+            box-shadow: none;
+        }
+        .btn-secondary:hover {
+            background: #e2e8f0;
+            box-shadow: none;
+        }
+
+        @media (max-width: 900px) {
+            .container {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+                padding: 2rem;
+            }
+            .product-info h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    <div class="nav-left">
+        Multi Vendor Store
+    </div>
+    <div class="nav-right">
+        <a href="{% url 'sales:index' %}">Home</a>
+        <a href="{% url 'sales:cart' %}">
+            Cart
+            <span class="cart-badge">{{ cart_count }}</span>
+        </a>
+        {% if request.user.is_authenticated %}
+            <a href="{% url 'sales:customer_dashboard' %}">Dashboard</a>
+            <a href="{% url 'sales:logout' %}">Logout</a>
+        {% else %}
+            <a href="{% url 'sales:customer_login' %}">Login</a>
+            <a href="{% url 'sales:customer_register' %}">Register</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="container">
+    <div class="product-image">
+        <img src="{{ product.image.url }}" alt="{{ product.name }}">
+    </div>
+    <div class="product-info">
+        <h1>{{ product.name }}</h1>
+        <div class="vendor-info">
+            Sold by <span>{{ product.vendor.user.username }}</span> in <span>{{ product.vendor.location }}</span>
+        </div>
+        
+        <div class="vendor-contact" style="margin-bottom: 1.5rem; font-size: 0.95rem; color: #475569;">
+            <p>📧 Email: <b>{{ product.vendor.email|default:product.vendor.user.email }}</b></p>
+            <p>📱 Mobile: <b>{{ product.vendor.mobile_number|default:"Not provided" }}</b></p>
+        </div>
+
+        <div class="stock-info" style="margin-bottom: 1.5rem; font-size: 1.1rem; font-weight: 600;">
+            Stock: <span style="color: {% if product.quantity < 10 %}#ef4444{% else %}#10b981{% endif %};">
+                {{ product.quantity }} {{ product.unit_or_size|default:"" }}
+            </span>
+            {% if product.quantity < 10 %}
+            <span style="font-size: 0.8rem; color: #ef4444; margin-left: 0.5rem;">(Low Stock!)</span>
+            {% endif %}
+        </div>
+        
+        <div class="price">
+            {{ product.price }}
+        </div>
+
+        <div class="description">
+            {{ product.description }}
+        </div>
+
+        <form method="POST" action="{% url 'sales:add_to_cart' product.id %}" style="margin-bottom: 2rem;">
+            {% csrf_token %}
+            
+            {% if product.category == 'dress' %}
+            <label style="display: block; font-weight: 700; margin-bottom: 0.5rem; font-size: 0.9rem; color: #4b5563;">SELECT SIZE</label>
+            <select name="selected_size" required style="width: 100%; padding: 0.8rem 1.2rem; border-radius: 40px; border: 2px solid #e5e7eb; margin-bottom: 1.5rem; outline: none; font-size: 1rem;">
+                <option value="" disabled selected>Choose a size</option>
+                <option value="S">Small (S)</option>
+                <option value="M">Medium (M)</option>
+                <option value="L">Large (L)</option>
+                <option value="XL">Extra Large (XL)</option>
+                <option value="XXL">Double Extra Large (XXL)</option>
+            </select>
+            {% endif %}
+
+            <label style="display: block; font-weight: 700; margin-bottom: 0.5rem; font-size: 0.9rem; color: #4b5563;">QUANTITY {% if product.category == 'fruits_veg' %}(KGs){% elif product.category == 'dairy' %}(Liters){% endif %}</label>
+            <input type="number" name="quantity" value="1" min="1" max="{{ product.quantity }}" required
+                   style="width: 100%; padding: 0.8rem 1.2rem; border-radius: 40px; border: 2px solid #e5e7eb; margin-bottom: 2rem; outline: none; font-size: 1.1rem; font-weight: 600;">
+
+            {% if product.quantity > 0 %}
+                <button type="submit" class="btn" style="width: 100%; border: none;">
+                   🛒 Add to Cart
+                </button>
+            {% else %}
+                <button type="button" class="btn" style="width: 100%; background: #94a3b8; cursor: not-allowed; box-shadow: none;" disabled>
+                    🚫 Out of Stock
+                </button>
+            {% endif %}
+        </form>
+        
+        {% if request.user.is_authenticated %}
+        <form method="POST" action="{% url 'sales:add_to_wishlist' product.id %}" style="margin-bottom: 2rem;">
+            {% csrf_token %}
+            {% if product.quantity > 0 %}
+                <button type="submit" class="btn btn-secondary" style="width: 100%; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                    ❤ Save to Wishlist
+                </button>
+            {% else %}
+                <button type="button" class="btn btn-secondary" style="width: 100%; background: #e2e8f0; color: #94a3b8; cursor: not-allowed; border: none; box-shadow: none;" disabled>
+                    ❤ Out of Stock
+                </button>
+            {% endif %}
+        </form>
+        {% endif %}
+        
+        <a href="{% url 'sales:index' %}" class="btn btn-secondary">
+            Back to Store
+        </a>
+    </div>
+</div>
+
+<!-- REVIEWS SECTION -->
+<div class="container" style="margin-top: 2rem; display: block;">
+    <h2 style="font-size: 2rem; margin-bottom: 2rem; border-bottom: 2px solid #f1f5f9; padding-bottom: 0.5rem;">Customer Reviews</h2>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem;">
+        <!-- Left: Review List -->
+        <div>
+            {% for review in reviews %}
+            <div style="background: #f8fafc; padding: 1.5rem; border-radius: 16px; margin-bottom: 1.5rem; border: 1px solid #e2e8f0;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <span style="font-weight: 700; color: #0f172a;">{{ review.customer.username }}</span>
+                    <span style="color: #64748b; font-size: 0.85rem;">{{ review.created_at|date:"d M Y" }}</span>
+                </div>
+                <div style="color: #f59e0b; margin-bottom: 0.8rem;">
+                    {% if review.rating %}
+                        {% for i in "12345"|make_list %}
+                            <i class="{% if forloop.counter <= review.rating %}fas{% else %}far{% endif %} fa-star"></i>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                <p style="color: #334155; line-height: 1.6;">{{ review.review_text }}</p>
+            </div>
+            {% empty %}
+            <p style="color: #64748b; font-style: italic;">No reviews yet. Be the first to review this product!</p>
+            {% endfor %}
+        </div>
+
+        <!-- Right: Review Form -->
+        <div id="review-form" style="background: #fff; border: 2px solid #f1f5f9; padding: 2rem; border-radius: 24px; height: fit-content; position: sticky; top: 100px;">
+            <h3 style="font-size: 1.5rem; margin-bottom: 1.5rem; color: #0f172a;">Write a Review</h3>
+            {% if request.user.is_authenticated %}
+            <form method="POST" action="{% url 'sales:submit_review' product.id %}">
+                {% csrf_token %}
+                <label style="display: block; font-weight: 700; margin-bottom: 0.5rem; font-size: 0.9rem; color: #4b5563;">YOUR RATING</label>
+                <div class="star-rating" style="display: flex; gap: 10px; font-size: 2rem; color: #cbd5e1; cursor: pointer; margin-bottom: 0.5rem;">
+                    <i class="far fa-star" data-rating="1" title="Poor"></i>
+                    <i class="far fa-star" data-rating="2" title="Fair"></i>
+                    <i class="far fa-star" data-rating="3" title="Good"></i>
+                    <i class="far fa-star" data-rating="4" title="Very Good"></i>
+                    <i class="far fa-star" data-rating="5" title="Excellent"></i>
+                </div>
+                <div id="rating-label" style="font-weight: 600; color: #f59e0b; margin-bottom: 1.5rem; min-height: 1.2rem;">Excellent</div>
+                <input type="hidden" name="rating" id="id_rating" value="5">
+                
+                <label style="display: block; font-weight: 700; margin-bottom: 0.5rem; font-size: 0.9rem; color: #4b5563;">YOUR REVIEW (OPTIONAL)</label>
+                <textarea name="review_text" rows="4" style="width: 100%; padding: 1rem; border-radius: 16px; border: 2px solid #e5e7eb; margin-bottom: 1.5rem; outline: none; font-size: 1rem; resize: none;" placeholder="What did you think of the product?"></textarea>
+                
+                <button type="submit" class="btn" style="width: 100%; border: none;">Submit Review</button>
+            </form>
+            {% else %}
+            <p style="color: #64748b;">Please <a href="{% url 'sales:customer_login' %}" style="color: #0d9488; font-weight: 600;">login</a> to write a review.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    const ratingLabels = {
+        1: "1 Star - Poor",
+        2: "2 Stars - Fair",
+        3: "3 Stars - Good",
+        4: "4 Stars - Very Good",
+        5: "5 Stars - Excellent"
+    };
+
+    function updateStars(rating) {
+        document.querySelectorAll('.star-rating i').forEach(s => {
+            if (s.dataset.rating <= rating) {
+                s.classList.remove('far');
+                s.classList.add('fas');
+                s.style.color = '#f59e0b';
+            } else {
+                s.classList.remove('fas');
+                s.classList.add('far');
+                s.style.color = '#cbd5e1';
+            }
+        });
+        document.getElementById('rating-label').innerText = ratingLabels[rating] || "";
+    }
+
+    document.querySelectorAll('.star-rating i').forEach(star => {
+        star.addEventListener('mouseenter', function() {
+            updateStars(this.dataset.rating);
+        });
+
+        star.addEventListener('mouseleave', function() {
+            const currentRating = document.getElementById('id_rating').value;
+            updateStars(currentRating);
+        });
+
+        star.addEventListener('click', function() {
+            const rating = this.dataset.rating;
+            document.getElementById('id_rating').value = rating;
+            updateStars(rating);
+        });
+    });
+
+    // Initial state
+    updateStars(document.getElementById('id_rating').value);
+</script>
+
+</body>
+</html>

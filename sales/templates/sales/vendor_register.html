@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendor Register · Multi Vendor Store</title>
+    <!-- Google Font (no effect on django tags) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(145deg, #eef2ff 0%, #f9fafb 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            color: #1e293b;
+        }
+
+        /* main card — glassy, elevated, with green accent */
+        .form-container {
+            width: 100%;
+            max-width: 460px;
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 36px;
+            box-shadow: 0 30px 50px -20px rgba(40, 167, 69, 0.25);
+            padding: 2.5rem 2.2rem;
+            transition: all 0.3s;
+            animation: fadeUp 0.5s ease-out;
+        }
+
+        @keyframes fadeUp {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            text-align: center;
+            background: linear-gradient(145deg, #0f172a, #28a745);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1.8rem;
+            border-bottom: 3px solid #28a74530;
+            padding-bottom: 0.75rem;
+        }
+
+        /* form fields */
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+
+        label {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #334155;
+            margin-top: 0.5rem;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 1rem 1.2rem;
+            margin-top: 0.3rem;
+            margin-bottom: 0.2rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 40px;
+            font-size: 1rem;
+            background: white;
+            transition: border 0.2s, box-shadow 0.2s;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #28a745;
+            box-shadow: 0 0 0 4px rgba(40, 167, 69, 0.15);
+        }
+
+        /* error styling */
+        .error {
+            color: #b91c1c;
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+            padding: 0.5rem 1rem;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin: 0.1rem 0 0.6rem 0;
+        }
+
+        /* password match hint (client-side only) */
+        .match-hint {
+            font-size: 0.8rem;
+            margin: -0.3rem 0 0.8rem 0.5rem;
+            min-height: 1.2rem;
+            transition: color 0.2s;
+        }
+        .match-success {
+            color: #28a745;
+            font-weight: 500;
+        }
+        .match-error {
+            color: #b91c1c;
+        }
+
+        /* button */
+        button {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(145deg, #28a745, #218838);
+            color: white;
+            border: none;
+            border-radius: 60px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin: 1.5rem 0 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 12px 24px -8px #28a74580;
+            border: 1px solid #5cb85c;
+        }
+
+        button:hover {
+            background: linear-gradient(145deg, #218838, #1e7e34);
+            transform: scale(1.02) translateY(-2px);
+            box-shadow: 0 20px 30px -8px #1e7e34;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        /* extra note (optional) */
+        .footer-note {
+            text-align: center;
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+        .footer-note a {
+            color: #28a745;
+            text-decoration: none;
+            font-weight: 600;
+            border-bottom: 1px dashed #28a745;
+        }
+        .footer-note a:hover {
+            border-bottom: 2px solid #28a745;
+        }
+
+        /* responsive */
+        @media (max-width: 500px) {
+            .form-container {
+                padding: 2rem 1.5rem;
+            }
+            h2 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="form-container">
+
+    <h2>Vendor Register</h2>
+
+    <form method="POST" id="registerForm">
+
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+        <div class="error">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <label>Username</label>
+        {{ form.username }}
+        {% if form.username.errors %}<div class="error">{{ form.username.errors }}</div>{% endif %}
+
+        <label>Email</label>
+        {{ form.email }}
+        {% if form.email.errors %}<div class="error">{{ form.email.errors }}</div>{% endif %}
+
+        <label>Password</label>
+        {{ form.password }}
+        {% if form.password.errors %}<div class="error">{{ form.password.errors }}</div>{% endif %}
+
+        <label>Confirm Password</label>
+        {{ form.confirm_password }}
+        {% if form.confirm_password.errors %}<div class="error">{{ form.confirm_password.errors }}</div>{% endif %}
+
+        <!-- inline password match hint (client side only, does not affect django) -->
+        <div class="match-hint" id="passwordMatchHint"></div>
+
+        <label>Location</label>
+        {{ form.location }}
+        {% if form.location.errors %}<div class="error">{{ form.location.errors }}</div>{% endif %}
+
+        <label>Mobile Number</label>
+        {{ form.mobile_number }}
+        {% if form.mobile_number.errors %}<div class="error">{{ form.mobile_number.errors }}</div>{% endif %}
+
+        <button type="submit">Register</button>
+
+    </form>
+
+    <!-- optional login link (extra) -->
+    <div class="footer-note">
+        Already have an account? <a href="{% url 'sales:vendor_login' %}">Login here</a>
+    </div>
+
+</div>
+
+<!-- optional JS: password match indicator (pure cosmetic, no django changes) -->
+<script>
+    (function() {
+        const form = document.getElementById('registerForm');
+        if (form) {
+            const password = form.querySelector('input[name="password"]');
+            const confirm = form.querySelector('input[name="confirm_password"]');
+            const hint = document.getElementById('passwordMatchHint');
+
+            if (password && confirm && hint) {
+                const checkMatch = () => {
+                    if (confirm.value.length === 0) {
+                        hint.textContent = '';
+                        hint.className = 'match-hint';
+                        return;
+                    }
+                    if (password.value === confirm.value) {
+                        hint.textContent = '✓ Passwords match';
+                        hint.className = 'match-hint match-success';
+                    } else {
+                        hint.textContent = '✗ Passwords do not match';
+                        hint.className = 'match-hint match-error';
+                    }
+                };
+                password.addEventListener('input', checkMatch);
+                confirm.addEventListener('input', checkMatch);
+            }
+        }
+    })();
+</script>
+
+</body>
+</html>

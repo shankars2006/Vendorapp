@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Admin Dashboard · Multi‑Vendor Analytics</title>
+    <!-- Google Fonts & Chart.js -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            background: radial-gradient(circle at 10% 30%, #f8fafc, #eef2f8);
+            min-height: 100vh;
+            color: #0f172a;
+            line-height: 1.5;
+        }
+
+        /* premium glass navbar */
+        .admin-nav {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 1rem 2.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 30;
+            box-shadow: 0 12px 28px -10px rgba(0, 0, 0, 0.15);
+        }
+
+        .logo-area h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffb347, #ff8c1a);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.3px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-area h1::before {
+            content: "⚡";
+            font-size: 1.8rem;
+            background: none;
+            -webkit-background-clip: unset;
+            color: #f97316;
+        }
+
+        .nav-actions a {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(4px);
+            padding: 0.6rem 1.5rem;
+            border-radius: 60px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #fef9c3;
+            transition: all 0.25s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-actions a:hover {
+            background: #f97316;
+            color: #0f172a;
+            border-color: #f97316;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(249, 115, 22, 0.3);
+        }
+
+        /* main container */
+        .dashboard {
+            max-width: 1440px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        /* chart grid — modern cards */
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .chart-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            border-radius: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            padding: 1.5rem 1.2rem 1.2rem 1.2rem;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        }
+
+        .chart-card:hover {
+            transform: translateY(-5px);
+            border-color: #fed7aa;
+            box-shadow: 0 28px 40px -16px rgba(249, 115, 22, 0.25);
+            background: rgba(255, 255, 255, 0.85);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 1.2rem;
+            border-left: 5px solid #f97316;
+            padding-left: 1rem;
+        }
+
+        .card-header i {
+            font-size: 1.8rem;
+            color: #f97316;
+        }
+
+        .card-header h2 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #0f172a;
+            letter-spacing: -0.2px;
+            margin: 0;
+        }
+
+        canvas {
+            max-height: 320px;
+            width: 100% !important;
+        }
+
+        /* vendor management card (full width, same style) */
+        .vendor-card {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(12px);
+            border-radius: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            padding: 1.8rem;
+            box-shadow: 0 20px 30px -12px rgba(0, 0, 0, 0.05);
+            transition: box-shadow 0.2s;
+        }
+
+        .vendor-card:hover {
+            box-shadow: 0 25px 38px -12px rgba(0, 0, 0, 0.12);
+        }
+
+        .vendor-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 1.5rem;
+            border-left: 5px solid #3b82f6;
+            padding-left: 1rem;
+        }
+
+        .vendor-header i {
+            font-size: 1.7rem;
+            color: #3b82f6;
+        }
+
+        .vendor-header h2 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        /* premium table design */
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 1.5rem;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(4px);
+        }
+
+        .vendor-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 0.9rem;
+        }
+
+        .vendor-table thead tr {
+            background: #1e293b;
+            color: white;
+        }
+
+        .vendor-table th {
+            padding: 1rem 1.5rem;
+            font-weight: 600;
+            text-align: left;
+            font-size: 0.85rem;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+
+        .vendor-table td {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            background: rgba(255, 255, 255, 0.6);
+            transition: background 0.2s;
+        }
+
+        .vendor-table tr:hover td {
+            background: rgba(255, 245, 235, 0.8);
+        }
+
+        /* status badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0.25rem 0.9rem;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+            width: fit-content;
+        }
+
+        .badge-approved {
+            background: #dcfce7;
+            color: #15803d;
+            border: 1px solid #bbf7d0;
+        }
+
+        .badge-pending {
+            background: #fff1f0;
+            color: #b91c1c;
+            border: 1px solid #ffcdcd;
+        }
+
+        /* action buttons */
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0.4rem 1.2rem;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-decoration: none;
+            transition: all 0.2s;
+            background: white;
+            border: 1px solid #e2e8f0;
+            color: #1e293b;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+        }
+
+        .action-btn.approve {
+            background: #16a34a;
+            border-color: #16a34a;
+            color: white;
+        }
+
+        .action-btn.approve:hover {
+            background: #15803d;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 12px rgba(22,163,74,0.2);
+        }
+
+        .action-btn.revoke {
+            background: #dc2626;
+            border-color: #dc2626;
+            color: white;
+        }
+
+        .action-btn.revoke:hover {
+            background: #b91c1c;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 12px rgba(220,38,38,0.2);
+        }
+
+        .action-btn i {
+            font-size: 0.8rem;
+        }
+
+        /* empty state */
+        .empty-row td {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+            font-style: italic;
+        }
+
+        /* subtle note */
+        .info-note {
+            margin-top: 2rem;
+            background: rgba(254, 243, 199, 0.6);
+            backdrop-filter: blur(4px);
+            border-radius: 1.5rem;
+            padding: 1rem 1.8rem;
+            border-left: 6px solid #f59e0b;
+            color: #92400e;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .info-note i {
+            font-size: 1.3rem;
+        }
+
+        /* responsive */
+        @media (max-width: 780px) {
+            .admin-nav {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+                padding: 1rem 1.5rem;
+            }
+            .dashboard {
+                padding: 0 1rem;
+            }
+            .analytics-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            .vendor-table th, .vendor-table td {
+                padding: 0.8rem 1rem;
+            }
+            .action-btn {
+                padding: 0.3rem 0.8rem;
+                font-size: 0.7rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .card-header h2, .vendor-header h2 {
+                font-size: 1.1rem;
+            }
+        }
+
+        /* custom chart tooltip enhancements (fallback) */
+        .chart-card canvas {
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05));
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="admin-nav">
+        <div class="logo-area">
+            <h1>Admin Nexus</h1>
+        </div>
+        <div class="nav-actions">
+            <a href="{% url 'admin:index' %}">
+                <span>🔧</span> Go to Django Admin
+            </a>
+        </div>
+    </nav>
+
+    <main class="dashboard">
+        <!-- Analytics section: Most Sold & Top Sellers -->
+        <div class="analytics-grid">
+            <!-- Most sold products bar chart -->
+            <div class="chart-card">
+                <div class="card-header">
+                    <i>📈</i>
+                    <h2>Most Sold Products (Units)</h2>
+                </div>
+                <canvas id="productsChart" width="400" height="300"></canvas>
+            </div>
+
+            <!-- Top sellers pie chart -->
+            <div class="chart-card">
+                <div class="card-header">
+                    <i>🏆</i>
+                    <h2>Top Sellers by Revenue (₹)</h2>
+                </div>
+                <canvas id="sellersChart" width="400" height="300"></canvas>
+            </div>
+        </div>
+
+        <!-- Vendor management table - improved UI -->
+        <div class="vendor-card">
+            <div class="vendor-header">
+                <i>👥</i>
+                <h2>Vendor Approval Management</h2>
+            </div>
+            <div class="table-wrapper">
+                <table class="vendor-table">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Location</th>
+                            <th>Status</th>
+                            <th style="text-align: center;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for vendor in vendors %}
+                        <tr>
+                            <td><strong>{{ vendor.user.username }}</strong></td>
+                            <td>{{ vendor.user.email }}</td>
+                            <td>{{ vendor.location|default:"—" }}</td>
+                            <td>
+                                {% if vendor.is_approved %}
+                                    <span class="badge badge-approved">
+                                        <span>✓</span> Approved
+                                    </span>
+                                {% else %}
+                                    <span class="badge badge-pending">
+                                        <span>⏳</span> Pending
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td style="text-align: center;">
+                                <a href="{% url 'sales:toggle_vendor_approval' vendor.id %}" 
+                                   class="action-btn {% if vendor.is_approved %}revoke{% else %}approve{% endif %}">
+                                    {% if vendor.is_approved %}
+                                        <i>✖</i> Revoke
+                                    {% else %}
+                                        <i>✔</i> Approve
+                                    {% endif %}
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr class="empty-row">
+                            <td colspan="5">✨ No vendors found. New sellers will appear here.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Insight note -->
+        <div class="info-note">
+            <i>💡</i>
+            <span><strong>Admin tip:</strong> Approve vendors to unlock their storefront. Charts update automatically based on real‑time order data.</span>
+        </div>
+    </main>
+
+    <script>
+        // Data passed from Django view (exactly as original)
+        const productNames = {{ product_names|safe }};
+        const productSales = {{ product_sales|safe }};
+        
+        const sellerNames = {{ seller_names|safe }};
+        const sellerRevenue = {{ seller_revenue|safe }};
+
+        // Bar chart: Most sold products
+        const ctxProducts = document.getElementById('productsChart').getContext('2d');
+        new Chart(ctxProducts, {
+            type: 'bar',
+            data: {
+                labels: productNames,
+                datasets: [{
+                    label: 'Units Sold',
+                    data: productSales,
+                    backgroundColor: 'rgba(249, 115, 22, 0.75)',
+                    borderColor: '#f97316',
+                    borderWidth: 1.5,
+                    borderRadius: 8,
+                    barPercentage: 0.65,
+                    categoryPercentage: 0.8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        labels: {
+                            font: { family: 'Inter', size: 12, weight: '500' },
+                            boxWidth: 12,
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: '#1e293b',
+                        titleFont: { family: 'Inter', size: 13 },
+                        bodyFont: { family: 'Inter', size: 12 },
+                        padding: 8,
+                        callbacks: {
+                            label: function(context) {
+                                return ` 📦 ${context.raw} unit(s)`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(0,0,0,0.05)', drawBorder: false },
+                        ticks: { font: { family: 'Inter', size: 11 }, stepSize: 1 }
+                    },
+                    x: {
+                        ticks: { font: { family: 'Inter', size: 11, weight: '500' }, maxRotation: 25, minRotation: 20 }
+                    }
+                }
+            }
+        });
+
+        // Pie chart: Top sellers revenue
+        const ctxSellers = document.getElementById('sellersChart').getContext('2d');
+        new Chart(ctxSellers, {
+            type: 'pie',
+            data: {
+                labels: sellerNames,
+                datasets: [{
+                    data: sellerRevenue,
+                    backgroundColor: [
+                        '#f97316', '#3b82f6', '#10b981', '#8b5cf6', '#ef4444', '#f59e0b', '#ec489a'
+                    ],
+                    borderColor: '#ffffff',
+                    borderWidth: 2.5,
+                    hoverOffset: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            font: { family: 'Inter', size: 11 },
+                            usePointStyle: true,
+                            boxWidth: 10,
+                            padding: 14
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: '#0f172a',
+                        titleFont: { family: 'Inter', weight: '600', size: 13 },
+                        bodyFont: { family: 'Inter', size: 12 },
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.raw;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percent = ((value / total) * 100).toFixed(1);
+                                return `${label}: ₹${value.toLocaleString()} (${percent}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

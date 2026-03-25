@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Wishlist | Multi Vendor Store</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f8fafc; color: #1e293b; line-height: 1.5; }
+        .amazon-header { background: #232f3e; color: white; padding: 0.9rem 2rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 20; }
+        .logo { font-size: 1.5rem; font-weight: 700; color: #ff9900; text-decoration: none; }
+        .nav-links a { color: #ffffffcc; text-decoration: none; margin-left: 1.5rem; font-weight: 500; font-size: 0.9rem; }
+        .nav-links a:hover { color: #ff9900; }
+        
+        .container { max-width: 1000px; margin: 3rem auto; padding: 0 2rem; }
+        .wishlist-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 1rem; }
+        .wishlist-header h1 { font-size: 2rem; font-weight: 800; color: #0f172a; }
+        
+        .wishlist-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem; }
+        .wishlist-card { background: white; border-radius: 20px; padding: 1.5rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); transition: 0.2s; position: relative; }
+        .wishlist-card:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        
+        .wishlist-card h3 { font-size: 1.3rem; font-weight: 700; margin-bottom: 0.5rem; color: #0f172a; }
+        .price { font-size: 1.5rem; font-weight: 800; color: #0d9488; margin-bottom: 1rem; }
+        .stock-status { font-size: 0.85rem; font-weight: 600; margin-bottom: 1.5rem; }
+        
+        .actions { display: grid; grid-template-columns: 2fr 1fr; gap: 0.8rem; }
+        .btn { display: inline-block; padding: 0.8rem 1rem; text-decoration: none; border-radius: 40px; font-weight: 700; text-align: center; font-size: 0.9rem; transition: 0.2s; border: none; cursor: pointer; }
+        .btn-primary { background: #232f3e; color: white; }
+        .btn-primary:hover { background: #111827; }
+        .btn-secondary { background: #f1f5f9; color: #ef4444; border: 1px solid #fee2e2; }
+        .btn-secondary:hover { background: #fee2e2; }
+        .btn-disabled { background: #e2e8f0; color: #94a3b8; cursor: not-allowed; pointer-events: none; }
+        
+        .total-section { background: white; border-radius: 20px; padding: 2rem; margin-top: 3rem; border: 1px solid #ff990040; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 15px -3px rgba(255, 153, 0, 0.1); }
+        .total-label { font-size: 1.1rem; color: #64748b; font-weight: 600; }
+        .total-amount { font-size: 2rem; font-weight: 800; color: #0f172a; }
+        
+        .empty-state { text-align: center; padding: 5rem 2rem; background: white; border-radius: 32px; border: 2px dashed #e2e8f0; }
+        .empty-state i { font-size: 3rem; color: #94a3b8; margin-bottom: 1rem; }
+    </style>
+</head>
+<body>
+
+<div class="amazon-header">
+    <a href="/" class="logo">Multi Vendor Store</a>
+    <div class="nav-links">
+        <a href="/"><i class="fas fa-home"></i> Home</a>
+        <a href="{% url 'sales:customer_dashboard' %}"><i class="fas fa-user"></i> Dashboard</a>
+        <a href="{% url 'sales:cart' %}"><i class="fas fa-shopping-cart"></i> Cart</a>
+        <a href="{% url 'sales:logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+</div>
+
+<div class="container">
+    <div class="wishlist-header">
+        <h1>❤ My Wishlist</h1>
+        {% if wishlist_items %}
+        <a href="{% url 'sales:add_all_to_cart' %}" class="btn btn-primary" style="background: #ff9900; color: #232f3e;">
+            <i class="fas fa-cart-plus"></i> Add All to Cart
+        </a>
+        {% endif %}
+    </div>
+
+    {% if wishlist_items %}
+    <div class="wishlist-grid">
+        {% for item in wishlist_items %}
+        <div class="wishlist-card">
+            <h3>{{ item.product.name }}</h3>
+            <div class="price">₹{{ item.product.price }}</div>
+            
+            <div class="stock-status">
+                {% if item.product.quantity > 0 %}
+                    <span style="color: #10b981;"><i class="fas fa-check-circle"></i> In Stock ({{ item.product.quantity }})</span>
+                {% else %}
+                    <span style="color: #ef4444;"><i class="fas fa-times-circle"></i> Out of Stock</span>
+                {% endif %}
+            </div>
+
+            <div class="actions">
+                {% if item.product.quantity > 0 %}
+                    <a href="{% url 'sales:move_to_cart' item.id %}" class="btn btn-primary">Move to Cart</a>
+                {% else %}
+                    <button class="btn btn-disabled">Out of Stock</button>
+                {% endif %}
+                <a href="{% url 'sales:remove_from_wishlist' item.id %}" class="btn btn-secondary" title="Remove"><i class="fas fa-trash"></i></a>
+            </div>
+            
+            <a href="{% url 'sales:product_detail' item.product.id %}" style="display: block; text-align: center; margin-top: 1rem; font-size: 0.85rem; color: #64748b; text-decoration: none;">View Details →</a>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="total-section">
+        <div>
+            <div class="total-label">Wishlist Subtotal</div>
+            <div class="total-amount">₹{{ wishlist_total }}</div>
+        </div>
+        <a href="/" class="btn btn-secondary" style="background: white; color: #232f3e; border: 1px solid #e2e8f0;">Continue Shopping</a>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="far fa-heart"></i>
+        <h2>Your wishlist is empty</h2>
+        <p style="color: #64748b; margin-top: 0.5rem;">Save items you're not ready to buy yet!</p>
+        <a href="/" class="btn btn-primary" style="margin-top: 2rem; background: #ff9900; color: #232f3e;">Shop All Products</a>
+    </div>
+    {% endif %}
+</div>
+
+</body>
+</html>

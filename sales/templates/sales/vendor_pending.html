@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Approval Pending · Vendor Registration</title>
+    <!-- Google Font for modern look (doesn't affect django tags) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(145deg, #f1f5f9 0%, #e6edf7 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            color: #1e293b;
+        }
+
+        /* main card — glassy, elevated, with warm orange accent (e67e22) */
+        .box {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 48px;
+            box-shadow: 0 30px 60px -20px rgba(230, 126, 34, 0.3);
+            padding: 3rem 2.5rem;
+            text-align: center;
+            max-width: 480px;
+            width: 100%;
+            animation: fadeUp 0.6s ease-out;
+        }
+
+        @keyframes fadeUp {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        /* decorative clock/hourglass illustration (pure CSS) */
+        .pending-icon {
+            width: 90px;
+            height: 90px;
+            margin: 0 auto 1.8rem;
+            background: #e67e2220;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 25px -5px #e67e2280;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .pending-icon svg {
+            width: 50px;
+            height: 50px;
+            fill: none;
+            stroke: #e67e22;
+            stroke-width: 2.5;
+            stroke-linecap: round;
+        }
+
+        /* heading exactly as provided, but styled */
+        .box h2 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(145deg, #1e293b, #e67e22);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1.2rem;
+        }
+
+        /* message paragraphs */
+        .box p {
+            color: #334155;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin: 0.8rem 0;
+            background: rgba(255,255,255,0.5);
+            padding: 0.8rem 1.2rem;
+            border-radius: 60px;
+            border: 1px solid rgba(255,255,255,0.8);
+        }
+
+        /* login button */
+        .btn {
+            margin-top: 2rem;
+            display: inline-block;
+            padding: 1rem 2.8rem;
+            background: linear-gradient(145deg, #e67e22, #d35400);
+            color: white;
+            text-decoration: none;
+            border-radius: 60px;
+            font-weight: 700;
+            font-size: 1.2rem;
+            box-shadow: 0 12px 24px -8px #e67e2280;
+            transition: all 0.2s;
+            border: 1px solid #f39c12;
+        }
+
+        .btn:hover {
+            background: linear-gradient(145deg, #d35400, #ba6b1c);
+            transform: scale(1.02) translateY(-3px);
+            box-shadow: 0 20px 30px -8px #b64900;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        /* small extra note (optional, doesn't affect django tags) */
+        .help-note {
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+
+        /* responsive */
+        @media (max-width: 500px) {
+            .box {
+                padding: 2rem 1.5rem;
+            }
+            .box h2 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="box">
+
+    <!-- decorative pending icon (added, no django tags affected) -->
+    <div class="pending-icon">
+        <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="9" />
+            <polyline points="12 7 12 12 15 15" />
+        </svg>
+    </div>
+
+    <!-- exact original content with django tags untouched -->
+    <h2>Registration Successful</h2>
+
+    <p>
+        Your vendor account is waiting for admin approval.
+    </p>
+
+    <p>
+        You can login after approval.
+    </p>
+
+    <a href="{% url 'sales:vendor_login' %}" class="btn">
+        Go to Login
+    </a>
+
+    <!-- subtle extra note (keeps design friendly, no impact on django) -->
+    <div class="help-note">
+        ✨ You'll receive an email once approved
+    </div>
+
+</div>
+
+</body>
+</html>

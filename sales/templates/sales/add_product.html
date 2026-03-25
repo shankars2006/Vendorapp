@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Product · Vendor Dashboard</title>
+    <!-- Google Font for modern look (doesn't affect django tags) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(145deg, #eef2ff 0%, #f9fafb 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            color: #1e293b;
+        }
+
+        /* main card — elevated, glassy */
+        .form-container {
+            width: 100%;
+            max-width: 580px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 36px;
+            box-shadow: 0 30px 60px -15px rgba(0, 20, 40, 0.25);
+            padding: 2.5rem 2.2rem;
+            transition: all 0.3s;
+        }
+
+        h2 {
+            font-size: 2.4rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            text-align: center;
+            background: linear-gradient(145deg, #0f172a, #f97316);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1.2rem;
+            border-bottom: 3px solid #f59e0b30;
+            padding-bottom: 0.75rem;
+        }
+
+        /* form fields spacing */
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+
+        label {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #334155;
+            margin-top: 0.6rem;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+
+        /* style all inputs, textareas, selects (django form renders them as standard) */
+        input, textarea, select {
+            width: 100%;
+            padding: 1rem 1.2rem;
+            margin-top: 0.3rem;
+            margin-bottom: 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 24px;
+            font-size: 1rem;
+            font-family: inherit;
+            background: white;
+            transition: border 0.2s, box-shadow 0.2s;
+            outline: none;
+        }
+
+        /* focus state */
+        input:focus, textarea:focus, select:focus {
+            border-color: #f97316;
+            box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.15);
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        /* file input styling (custom, but keeps functionality) */
+        input[type="file"] {
+            padding: 0.8rem 1.2rem;
+            background: #f8fafc;
+            border-style: dashed;
+            border-color: #cbd5e1;
+            color: #475569;
+        }
+        input[type="file"]::file-selector-button {
+            background: #1e293b;
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 40px;
+            font-weight: 600;
+            margin-right: 1rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        input[type="file"]::file-selector-button:hover {
+            background: #f97316;
+        }
+
+        /* image preview (added via JS, but doesn't affect django) */
+        .image-preview {
+            margin: 0.5rem 0 1rem 0;
+            border-radius: 24px;
+            overflow: hidden;
+            max-width: 200px;
+            max-height: 200px;
+            border: 2px solid #f59e0b;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            display: none;
+        }
+        .image-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* submit button */
+        button {
+            width: 100%;
+            padding: 1.2rem;
+            background: linear-gradient(145deg, #f97316, #ea580c);
+            color: white;
+            border: none;
+            border-radius: 60px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin-top: 1.2rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 12px 24px -8px #f9731680;
+            border: 1px solid #fb923c;
+        }
+
+        button:hover {
+            background: linear-gradient(145deg, #ea580c, #c2410c);
+            transform: scale(1.02) translateY(-3px);
+            box-shadow: 0 20px 30px -8px #c2410c;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        /* help text (if any django form errors, they remain visible) */
+        .helptext, .errorlist {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-top: -0.8rem;
+            margin-bottom: 0.8rem;
+        }
+        .errorlist {
+            color: #dc2626;
+            font-weight: 600;
+        }
+
+        /* responsive */
+        @media (max-width: 500px) {
+            .form-container {
+                padding: 1.8rem;
+            }
+            h2 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="form-container">
+
+    <h2>➕ Add Product</h2>
+
+    <form method="POST" enctype="multipart/form-data" id="productForm">
+
+        {% csrf_token %}
+
+        {% if form.errors %}
+        <div class="errorlist">
+            {% for field, errors in form.errors.items %}
+                {% for error in errors %}
+                    <p>{{ field|title }}: {{ error }}</p>
+                {% endfor %}
+            {% endfor %}
+            {% for error in form.non_field_errors %}
+                <p>{{ error }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <label>Product Name</label>
+        {{ form.name }}
+
+        <label>Description</label>
+        {{ form.description }}
+
+        <label>Price (₹)</label>
+        {{ form.price }}
+
+        <label>Product Image</label>
+        {{ form.image }}
+
+        <!-- image preview element (added via JS, purely cosmetic) -->
+        <div class="image-preview" id="imagePreview">
+            <img src="#" alt="Preview" />
+        </div>
+
+        <label>Stock Quantity</label>
+        {{ form.quantity }}
+
+        <label>Category</label>
+        {{ form.category }}
+
+        <label id="unitLabel">Unit / Size</label>
+        {{ form.unit_or_size }}
+        <div id="unitHint" style="font-size: 0.8rem; color: #64748b; margin-top: -0.8rem; margin-bottom: 0.8rem;"></div>
+
+        <button type="submit">Add Product</button>
+
+    </form>
+
+</div>
+
+<!-- optional JS to enhance file input with preview (doesn't alter django tags) -->
+<script>
+    (function() {
+        // Get the file input rendered by django ({{ form.image }})
+        const fileInput = document.querySelector('input[type="file"]');
+        const previewContainer = document.getElementById('imagePreview');
+        const previewImage = previewContainer.querySelector('img');
+
+        if (fileInput && previewContainer) {
+            fileInput.addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        previewImage.src = e.target.result;
+                        previewContainer.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    previewContainer.style.display = 'none';
+                    previewImage.src = '#';
+                }
+            });
+        }
+
+        // Category and Unit logic
+        const categorySelect = document.querySelector('select[name="category"]');
+        const unitInput = document.querySelector('input[name="unit_or_size"]');
+        const unitHint = document.getElementById('unitHint');
+
+        if (categorySelect && unitInput) {
+            const updateUnitLogic = () => {
+                const category = categorySelect.value;
+                const mapping = {
+                    'fruits_veg': 'KGs',
+                    'snacks': 'No Of Item',
+                    'packed_food': 'No Of Item',
+                    'electronics': 'No Of Item',
+                    'stationaries': 'No Of Item',
+                    'dairy': 'Liters',
+                    'dress': 'Sizes (S, M, L, XL, XXL)'
+                };
+                
+                if (mapping[category]) {
+                    unitInput.value = mapping[category];
+                    unitHint.textContent = 'Auto-selected unit: ' + mapping[category];
+                } else {
+                    unitHint.textContent = '';
+                }
+            };
+            categorySelect.addEventListener('change', updateUnitLogic);
+            updateUnitLogic(); // initial call
+        }
+    })();
+</script>
+
+<!-- Django tags remain untouched. The form fields will be rendered exactly as before,
+     but styled beautifully. The file input preview does not interfere with form submission. -->
+</body>
+</html>

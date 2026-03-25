@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Track your deliveries</title>
+    <!-- Google Fonts + Font Awesome 6 (free) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            background: #e9ecef;
+            color: #1e2a3e;
+            line-height: 1.4;
+        }
+
+        /* Amazon-style header */
+        .amazon-header {
+            background: #232f3e;
+            color: white;
+            padding: 0.9rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            position: sticky;
+            top: 0;
+            z-index: 20;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+
+        .logo-area h2 {
+            font-size: 1.7rem;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            color: #ff9900;
+            margin: 0;
+        }
+
+        .logo-area span {
+            font-size: 0.85rem;
+            color: #ddd;
+            font-weight: 400;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.8rem;
+        }
+
+        .nav-links a {
+            color: #ffffffcc;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .nav-links a i {
+            font-size: 1rem;
+        }
+
+        .nav-links a:hover {
+            color: #ff9900;
+            transform: translateY(-1px);
+        }
+
+        /* container */
+        .dashboard-container {
+            max-width: 1280px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        /* order card - Amazon card style */
+        .order-card {
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.03);
+            transition: box-shadow 0.2s, transform 0.1s;
+            border: 1px solid #eaeef2;
+            overflow: hidden;
+        }
+
+        .order-card:hover {
+            box-shadow: 0 15px 30px -12px rgba(0, 0, 0, 0.15);
+        }
+
+        /* order summary row */
+        .order-summary {
+            padding: 1.5rem 2rem 1rem 2rem;
+            border-bottom: 1px solid #f0f2f4;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+            background: #fefefe;
+        }
+
+        .product-details h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #0f2b3d;
+            letter-spacing: -0.2px;
+            margin-bottom: 0.4rem;
+        }
+
+        .meta-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.2rem;
+            margin-top: 0.3rem;
+            font-size: 0.85rem;
+            color: #4b5e77;
+        }
+
+        .meta-info i {
+            width: 1.1rem;
+            color: #ff9900;
+            margin-right: 4px;
+        }
+
+        .order-id-badge {
+            background: #f3f6f9;
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #2c3e66;
+            font-family: monospace;
+            letter-spacing: 0.3px;
+            border: 1px solid #e2e8f0;
+        }
+
+        /* timeline area */
+        .tracking-section {
+            padding: 1.2rem 2rem 1.8rem 2rem;
+            background: #ffffff;
+        }
+
+        .tracking-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #1e466e;
+            margin-bottom: 1.6rem;
+            letter-spacing: -0.2px;
+        }
+
+        .tracking-label i {
+            color: #ff9900;
+            font-size: 1.1rem;
+        }
+
+        /* Timeline horizontal with line behind */
+        .timeline-steps-wrapper {
+            position: relative;
+            margin: 0.5rem 0 0.8rem;
+        }
+
+        .timeline-steps {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            z-index: 2;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        /* background connector line (Amazon style progress line) */
+        .timeline-steps-wrapper::before {
+            content: '';
+            position: absolute;
+            top: 30px;
+            left: 5%;
+            width: 90%;
+            height: 3px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            z-index: 0;
+        }
+
+        .step {
+            flex: 1;
+            text-align: center;
+            position: relative;
+            background: transparent;
+            min-width: 80px;
+            z-index: 2;
+        }
+
+        .step-icon {
+            width: 44px;
+            height: 44px;
+            background: white;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            margin-bottom: 0.6rem;
+            border: 2px solid #e2e8f0;
+            transition: all 0.2s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        }
+
+        .step-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: #4a627a;
+        }
+
+        .step-label span {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-transform: capitalize;
+            margin-top: 4px;
+            color: #1f2f44;
+        }
+
+        /* step status styling */
+        .step.completed .step-icon {
+            background: #10b981;
+            border-color: #10b981;
+            color: white;
+        }
+
+        .step.completed .step-icon i {
+            color: white;
+        }
+
+        .step.active .step-icon {
+            background: #ff9900;
+            border-color: #ff9900;
+            color: white;
+            box-shadow: 0 0 0 3px rgba(255, 153, 0, 0.25);
+        }
+
+        .step.active .step-label {
+            color: #ff9900;
+            font-weight: 700;
+        }
+
+        .step.active .step-label span {
+            color: #ff8c1a;
+            font-weight: 700;
+        }
+
+        .step.pending .step-icon {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+            color: #94a3b8;
+        }
+
+        .step.pending .step-label {
+            color: #8ba0bc;
+        }
+
+        /* small status badge near product (optional but clean) */
+        .current-status-tag {
+            display: inline-flex;
+            align-items: center;
+            background: #fef3e2;
+            padding: 0.2rem 0.8rem;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #c26b00;
+            margin-left: 0.8rem;
+            gap: 6px;
+        }
+
+        /* empty orders message */
+        .empty-state {
+            background: white;
+            border-radius: 32px;
+            text-align: center;
+            padding: 3.5rem 2rem;
+            border: 1px solid #eef2f6;
+            box-shadow: 0 5px 12px rgba(0,0,0,0.02);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            color: #cbd5e1;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state p {
+            font-size: 1.2rem;
+            color: #445e7e;
+        }
+
+        .empty-state a {
+            display: inline-block;
+            margin-top: 1.2rem;
+            background: #ff9900;
+            color: #232f3e;
+            padding: 0.6rem 1.8rem;
+            border-radius: 60px;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        /* responsive design */
+        @media (max-width: 780px) {
+            .amazon-header {
+                flex-direction: column;
+                gap: 0.8rem;
+                text-align: center;
+            }
+            .order-summary {
+                flex-direction: column;
+            }
+            .timeline-steps-wrapper::before {
+                display: none;
+            }
+            .timeline-steps {
+                flex-direction: column;
+                gap: 1.3rem;
+                align-items: flex-start;
+            }
+            .step {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                text-align: left;
+                width: 100%;
+            }
+            .step-icon {
+                margin-bottom: 0;
+                width: 38px;
+                height: 38px;
+                font-size: 1rem;
+            }
+            .step-label {
+                text-align: left;
+            }
+            .step-label span {
+                display: inline-block;
+                margin-left: 6px;
+            }
+        }
+
+        @media (max-width: 550px) {
+            .dashboard-container {
+                padding: 0 1rem;
+            }
+            .order-summary, .tracking-section {
+                padding: 1.2rem;
+            }
+            .product-details h3 {
+                font-size: 1.1rem;
+            }
+        }
+
+        /* additional small details */
+        .vendor-badge {
+            background: #f8fafc;
+            border-radius: 20px;
+            padding: 0.2rem 0.7rem;
+            font-size: 0.75rem;
+        }
+
+        .price-highlight {
+            font-weight: 700;
+            color: #1e4620;
+        }
+    </style>
+</head>
+<body>
+
+<div class="amazon-header">
+    <div class="logo-area">
+        <h2><i class="fas fa-box-open"></i> myOrders</h2>
+        <span>Track & manage</span>
+    </div>
+    <div class="nav-links">
+        <a href="/"><i class="fas fa-home"></i> Home</a>
+        <a href="/logout/" id="logoutLink"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+</div>
+
+<div class="dashboard-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; margin-bottom: 2rem;">
+        <h2 style="font-size:1.6rem; color:#1e2a3e;">🚀 Active Deliveries</h2>
+        <a href="{% url 'sales:wishlist' %}" class="btn" style="background: #ff990020; color: #ff9900; padding: 0.6rem 1.2rem; border-radius: 40px; font-weight: 700; text-decoration: none; font-size: 0.9rem; border: 1px solid #ff990040;">
+            <i class="fas fa-heart"></i> Go to My Wishlist
+        </a>
+    </div>
+    {% for order in active_orders %}
+    <div class="order-card" data-order-id="{{ order.id }}">
+        <!-- order summary: product, vendor, price & date -->
+        <div class="order-summary">
+            <div class="product-details">
+                <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px;">
+                    <h3>{{ order.product.name }}</h3>
+                    <!-- current status micro tag (amazon style) -->
+                    <span class="current-status-tag">
+                        <i class="fas fa-truck-fast"></i> 
+                        {{ order.get_status_display }}
+                    </span>
+                </div>
+                <div class="meta-info">
+                    <span><i class="fas fa-store"></i> Seller: {{ order.vendor.username }}</span>
+                    <span><i class="fas fa-rupee-sign"></i> <span class="price-highlight">₹{{ order.total_price }}</span></span>
+                    <span><i class="far fa-calendar-alt"></i> Ordered: {{ order.created_at|date:"d M Y" }}</span>
+                </div>
+            </div>
+            <div class="order-id-badge">
+                <i class="far fa-receipt"></i> Order #ORD-{{ order.id }}
+            </div>
+            {% if order.status == 'pickup' %}
+            <div style="margin-top: 10px; width: 100%; display: flex; justify-content: flex-end;">
+                <a href="{% url 'sales:cancel_order' order.id %}" class="btn" style="background: #fef2f2; color: #dc2626; padding: 0.4rem 1rem; border-radius: 40px; font-weight: 600; text-decoration: none; font-size: 0.85rem; border: 1px solid #fee2e2;" onclick="return confirm('Are you sure you want to cancel this order?')">
+                    <i class="fas fa-times-circle"></i> Cancel Order
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Amazon-style tracking timeline (status flow) -->
+        {% if order.status != 'cancelled' and order.status != 'returned' and order.status != 'return_requested' and order.status != 'claim_requested' and order.status != 'claimed' %}
+        <div class="tracking-section">
+            <div class="tracking-label">
+                <i class="fas fa-chart-line"></i> 
+                <span>ORDER TRACKING PROGRESS</span>
+            </div>
+            <div class="timeline-steps-wrapper">
+                <div class="timeline-steps">
+                    <!-- STEP 1: PICKUP ORDER -->
+                    {% with status=order.status %}
+                    <div class="step 
+                        {% if status == 'dispatch' or status == 'out_for_delivery' or status == 'delivered' %}
+                            completed
+                        {% elif status == 'pickup' %}
+                            active
+                        {% else %}
+                            pending
+                        {% endif %}">
+                        <div class="step-icon">
+                            {% if status == 'dispatch' or status == 'out_for_delivery' or status == 'delivered' %}
+                                <i class="fas fa-check-circle"></i>
+                            {% elif status == 'pickup' %}
+                                <i class="fas fa-hand-holding-box"></i>
+                            {% else %}
+                                <i class="fas fa-circle-notch"></i>
+                            {% endif %}
+                        </div>
+                        <div class="step-label">
+                            STEP 1 <span>Pickup Order</span>
+                        </div>
+                    </div>
+
+                    <!-- STEP 2: DISPATCH -->
+                    <div class="step 
+                        {% if status == 'out_for_delivery' or status == 'delivered' %}
+                            completed
+                        {% elif status == 'dispatch' %}
+                            active
+                        {% else %}
+                            pending
+                        {% endif %}">
+                        <div class="step-icon">
+                            {% if status == 'out_for_delivery' or status == 'delivered' %}
+                                <i class="fas fa-check-circle"></i>
+                            {% elif status == 'dispatch' %}
+                                <i class="fas fa-dolly"></i>
+                            {% else %}
+                                <i class="fas fa-circle-notch"></i>
+                            {% endif %}
+                        </div>
+                        <div class="step-label">
+                            STEP 2 <span>Dispatch</span>
+                        </div>
+                    </div>
+
+                    <!-- STEP 3: OUT FOR DELIVERY -->
+                    <div class="step 
+                        {% if status == 'delivered' %}
+                            completed
+                        {% elif status == 'out_for_delivery' %}
+                            active
+                        {% else %}
+                            pending
+                        {% endif %}">
+                        <div class="step-icon">
+                            {% if status == 'delivered' %}
+                                <i class="fas fa-check-circle"></i>
+                            {% elif status == 'out_for_delivery' %}
+                                <i class="fas fa-shipping-fast"></i>
+                            {% else %}
+                                <i class="fas fa-circle-notch"></i>
+                            {% endif %}
+                        </div>
+                        <div class="step-label">
+                            STEP 3 <span>Out for Delivery</span>
+                        </div>
+                    </div>
+
+                    <!-- STEP 4: DELIVERED -->
+                    <div class="step 
+                        {% if status == 'delivered' %}
+                            completed
+                        {% else %}
+                            pending
+                        {% endif %}">
+                        <div class="step-icon">
+                            {% if status == 'delivered' %}
+                                <i class="fas fa-home"></i>
+                            {% else %}
+                                <i class="fas fa-circle-notch"></i>
+                            {% endif %}
+                        </div>
+                        <div class="step-label">
+                            STEP 4 <span>Delivered</span>
+                        </div>
+                    </div>
+                    {% endwith %}
+                </div>
+            </div>
+            <!-- optional mini delivery note (amazon like) -->
+            <div style="margin-top: 1rem; font-size: 0.7rem; color: #6c86a3; display: flex; justify-content: flex-end; border-top: 1px dashed #e9edf2; padding-top: 0.7rem;">
+                <i class="far fa-clock"></i> 
+                {% if order.status == 'delivered' %}
+                    ✅ Delivered on {{ order.created_at|date:"d M Y" }} • Thank you
+                {% elif order.status == 'out_for_delivery' %}
+                    🚚 <b>Driver: {{ order.delivery_person_name }} ({{ order.delivery_person_mobile }})</b> is on the way – arriving soon
+                {% elif order.status == 'dispatch' %}
+                    📦 Your order has been dispatched from warehouse
+                {% elif order.status == 'pickup' %}
+                    📍 Seller is preparing to hand over to courier
+                {% else %}
+                    ⏳ Processing latest status
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- REFUND DETAILS SECTION -->
+        {% if order.status == 'claim_requested' or order.status == 'claimed' %}
+        <div class="refund-section" style="margin-top: 2rem; background: #fffcf0; border: 2px solid #fef3c7; border-radius: 28px; padding: 1.8rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 1.2rem;">
+                <div style="background: #fef3c7; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-hand-holding-usd" style="font-size: 1.3rem; color: #d97706;"></i>
+                </div>
+                <h3 style="font-size: 1.4rem; color: #92400e; margin: 0; font-weight: 700;">Refund Details & Status</h3>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1.5rem;">
+                <div>
+                    <p style="font-size: 0.75rem; color: #d97706; text-transform: uppercase; font-weight: 700; letter-spacing: 0.8px; margin-bottom: 0.4rem;">Refund Amount</p>
+                    <p style="font-size: 1.4rem; font-weight: 800; color: #1e293b;">₹{{ order.total_price }}</p>
+                </div>
+                <div>
+                    <p style="font-size: 0.75rem; color: #d97706; text-transform: uppercase; font-weight: 700; letter-spacing: 1px; margin-bottom: 0.4rem;">Current Status</p>
+                    <p style="font-size: 1rem; font-weight: 700;">
+                        {% if order.status == 'claim_requested' %}
+                            <span style="color: #ea580c; background: #fff7ed; padding: 4px 12px; border-radius: 20px; border: 1px solid #ffedd5;">
+                                <i class="fas fa-clock"></i> Pending Approval
+                            </span>
+                        {% else %}
+                            <span style="color: #059669; background: #ecfdf5; padding: 4px 12px; border-radius: 20px; border: 1px solid #d1fae5;">
+                                <i class="fas fa-check-circle"></i> Refund Issued
+                            </span>
+                        {% endif %}
+                    </p>
+                </div>
+                <div>
+                    <p style="font-size: 0.75rem; color: #d97706; text-transform: uppercase; font-weight: 700; letter-spacing: 1px; margin-bottom: 0.4rem;">Method</p>
+                    <p style="font-size: 1rem; font-weight: 700; color: #334155;">Original Payment Method</p>
+                </div>
+            </div>
+
+            <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(254, 243, 199, 0.4); border-radius: 16px; border-left: 4px solid #f59e0b; font-size: 0.9rem; color: #78350f;">
+                {% if order.status == 'claim_requested' %}
+                    <p style="margin: 0;"><i class="fas fa-info-circle"></i> Your refund request has been initiated. The vendor is currently reviewing your claim. You'll see an update here once approved.</p>
+                {% else %}
+                    <p style="margin: 0;"><i class="fas fa-check-circle"></i> <b>Refund Confirmed!</b> The vendor has approved your claim. The full amount has been processed and will appear in your account within 3-5 business days.</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% empty %}
+    <div class="empty-state">
+        <i class="fas fa-shopping-bag"></i>
+        <p>No active orders currently. Start shopping and track your deliveries like a pro!</p>
+        <a href="/"><i class="fas fa-arrow-left"></i> Continue Shopping</a>
+    </div>
+    {% endfor %}
+
+    <!-- CANCELLED ORDERS SECTION -->
+    {% if cancelled_orders %}
+    <h2 style="font-size:1.6rem; color:#dc2626; margin-top: 3rem; margin-bottom: -1rem; padding-top: 2rem; border-top: 2px solid #fee2e2;">🚫 Cancelled Orders</h2>
+    {% for order in cancelled_orders %}
+    <div class="order-card" style="opacity: 0.75; border-left: 4px solid #ef4444;">
+        <div class="order-summary">
+            <div class="product-details">
+                <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px;">
+                    <h3>{{ order.product.name }}</h3>
+                    <span class="current-status-tag" style="background: #fef2f2; color: #991b1b;">
+                        <i class="fas fa-times-circle"></i> Cancelled
+                    </span>
+                </div>
+                <div class="meta-info">
+                    <span><i class="fas fa-store"></i> Seller: {{ order.vendor.username }}</span>
+                    <span><i class="fas fa-rupee-sign"></i> <span class="price-highlight">₹{{ order.total_price }}</span></span>
+                    <span><i class="far fa-calendar-alt"></i> Ordered: {{ order.created_at|date:"d M Y" }}</span>
+                </div>
+            </div>
+            <div class="order-id-badge">Order #ORD-{{ order.id }}</div>
+        </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <!-- ORDER HISTORY SECTION -->
+    <h2 style="font-size:1.6rem; color:#1e2a3e; margin-top: 3rem; margin-bottom: -1rem; padding-top: 2rem; border-top: 2px solid #e9ecef;">📦 Order History</h2>
+    {% for order in history_orders %}
+    <div class="order-card" data-order-id="{{ order.id }}" style="opacity: 0.85;">
+        <!-- order summary: product, vendor, price & date -->
+        <div class="order-summary">
+            <div class="product-details">
+                <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px;">
+                    <h3>{{ order.product.name }}</h3>
+                    <!-- current status micro tag -->
+                    <span class="current-status-tag" style="{% if order.status == 'delivered' %}background: #ecfdf5; color: #047857;{% elif order.status == 'returned' %}background: #fef2f2; color: #991b1b;{% elif order.status == 'claim_requested' %}background: #fffbeb; color: #9a3412;{% elif order.status == 'claimed' %}background: #f0fdf4; color: #166534;{% else %}background: #eff6ff; color: #1e40af;{% endif %}">
+                        <i class="fas {% if order.status == 'delivered' %}fa-check-circle{% elif order.status == 'returned' %}fa-undo{% elif order.status == 'claim_requested' %}fa-clock{% elif order.status == 'claimed' %}fa-hand-holding-usd{% else %}fa-info-circle{% endif %}" style="{% if order.status == 'delivered' %}color: #10b981;{% endif %}"></i> 
+                        {{ order.get_status_display|default:order.status|title }}
+                    </span>
+                </div>
+                <div class="meta-info">
+                    <span><i class="fas fa-store"></i> Seller: {{ order.vendor.username }}</span>
+                    <span><i class="fas fa-rupee-sign"></i> <span class="price-highlight">₹{{ order.total_price }}</span></span>
+                    <span><i class="far fa-calendar-alt"></i> Ordered: {{ order.created_at|date:"d M Y" }}</span>
+                </div>
+            </div>
+            <div class="order-id-badge">
+                <i class="far fa-receipt"></i> Order #ORD-{{ order.id }}
+            </div>
+            <div style="margin-top: 15px; width: 100%; display: flex; gap: 10px; justify-content: flex-end;">
+                <a href="{% url 'sales:reorder' order.id %}" class="btn" style="background: #fffbeb; color: #d97706; padding: 0.4rem 1rem; border-radius: 40px; font-weight: 600; text-decoration: none; font-size: 0.85rem; border: 1px solid #fef3c7;">
+                    <i class="fas fa-redo"></i> Reorder
+                </a>
+                {% if order.status == 'delivered' %}
+                <a href="{% url 'sales:return_order' order.id %}" class="btn" style="background: #f0f9ff; color: #0284c7; padding: 0.4rem 1rem; border-radius: 40px; font-weight: 600; text-decoration: none; font-size: 0.85rem; border: 1px solid #e0f2fe;">
+                    <i class="fas fa-undo"></i> Return
+                </a>
+                {% elif order.status == 'returned' %}
+                <a href="{% url 'sales:request_claim' order.id %}" class="btn" style="background: #fdf2f7; color: #db2777; padding: 0.4rem 1rem; border-radius: 40px; font-weight: 600; border: 1px solid #fce7f3; font-size: 0.85rem; text-decoration: none;">
+                    <i class="fas fa-hand-holding-usd"></i> Request Claim
+                </a>
+                {% elif order.status == 'claim_requested' %}
+                <span style="background: #fffbeb; color: #9a3412; padding: 0.4rem 1rem; border-radius: 40px; font-weight: 600; font-size: 0.85rem; border: 1px solid #fed7aa;">
+                    <i class="fas fa-clock"></i> Claim Pending
+                </span>
+                {% elif order.status == 'claimed' %}
+                <span style="background: #ecfdf5; color: #065f46; padding: 0.4rem 1rem; border-radius: 40px; font-weight: 600; font-size: 0.85rem; border: 1px solid #d1fae5;">
+                    <i class="fas fa-check-circle"></i> Amount Claimed
+                </span>
+                {% endif %}
+                <a href="{% url 'sales:product_detail' order.product.id %}#review-form" class="btn" style="background: #f5f3ff; color: #7c3aed; padding: 0.4rem 1rem; border-radius: 40px; font-weight: 600; text-decoration: none; font-size: 0.85rem; border: 1px solid #ede9fe;">
+                    <i class="fas fa-star"></i> Review & Rating
+                </a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty-state" style="padding: 2rem;">
+        <i class="fas fa-box-open" style="font-size: 2rem;"></i>
+        <p style="font-size: 1rem;">No past orders. Your delivered items will appear here.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+    (function() {
+        // logout confirmation (Amazon style confirm)
+        const logoutBtn = document.getElementById('logoutLink');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', function(e) {
+                const confirmAction = confirm('Are you sure you want to sign out?');
+                if (!confirmAction) {
+                    e.preventDefault();
+                }
+            });
+        }
+
+        // additional micro interaction: hover timeline icon effect (just cosmetic)
+        const steps = document.querySelectorAll('.step');
+        steps.forEach(step => {
+            step.addEventListener('mouseenter', () => {
+                const iconDiv = step.querySelector('.step-icon');
+                if (iconDiv && !step.classList.contains('active') && !step.classList.contains('completed')) {
+                    iconDiv.style.transform = 'scale(1.05)';
+                    iconDiv.style.transition = '0.2s';
+                }
+            });
+            step.addEventListener('mouseleave', () => {
+                const iconDiv = step.querySelector('.step-icon');
+                if (iconDiv) iconDiv.style.transform = 'scale(1)';
+            });
+        });
+
+        // dynamic status description to match timeline style (ensures data consistency)
+        // also we can add some console log for debugging but not needed.
+        console.log("Amazon-style order dashboard with dynamic timeline loaded ✓");
+    })();
+</script>
+
+</body>
+</html>
