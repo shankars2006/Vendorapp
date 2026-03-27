@@ -523,7 +523,6 @@ def move_to_cart(request, wishlist_id):
         defaults={'quantity': wishlist_item.quantity}
     )
     
-    wishlist_item.delete()
     return redirect("sales:cart")
 
 
@@ -542,7 +541,6 @@ def add_all_to_cart(request):
             cart_item.quantity += item.quantity
             cart_item.save()
             
-    wishlist_items.delete()
     return redirect("sales:cart")
 
 

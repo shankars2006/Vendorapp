@@ -505,7 +505,6 @@
 <!-- JavaScript: interactive filtering, sorting, location builder (logic untouched, only visual enhancements and cart badge pop simulation) -->
 <script>
     (function() {
-        // ----- DOM elements -----
         const container = document.getElementById('productContainer');
         const searchInput = document.getElementById('searchInput');
         const searchBtn = document.getElementById('searchButton');
@@ -513,48 +512,47 @@
         const locationSelect = document.getElementById('locationSelect');
         const cartBadge = document.getElementById('cartBadge');
 
-        // Get all product cards (anchor tags with .card)
-        let cards = Array.from(document.querySelectorAll('.card'));
+        // Initial cards array
+        const cards = Array.from(document.querySelectorAll('.card'));
 
-        // Ensure dataset fields for dynamic filtering (same logic, but safe)
+        // Pre-process cards to ensure data attributes are clean and available
         cards.forEach(card => {
+            // Fallback for name if data-name is missing or empty
             if (!card.dataset.name) {
-                const nameElem = card.querySelector('h3');
-                card.dataset.name = nameElem ? nameElem.textContent.trim().toLowerCase() : '';
+                const h3 = card.querySelector('h3');
+                card.dataset.name = h3 ? h3.textContent.trim().toLowerCase() : '';
             }
+            // Fallback for vendor
             if (!card.dataset.vendor) {
-                const vendorPara = card.querySelector('p:nth-of-type(2)');
-                let vendorText = '';
-                if (vendorPara) {
-                    vendorText = vendorPara.textContent.replace('Vendor:', '').replace('🏪', '').trim().toLowerCase();
-                }
-                card.dataset.vendor = vendorText;
+                const vendorPara = Array.from(card.querySelectorAll('p')).find(p => p.textContent.includes('Vendor:'));
+                card.dataset.vendor = vendorPara ? vendorPara.textContent.replace('Vendor:', '').trim().toLowerCase() : '';
             }
+            // Fallback for location
             if (!card.dataset.location) {
-                const locPara = card.querySelector('p:nth-of-type(3)');
-                let locText = '';
-                if (locPara) {
-                    locText = locPara.textContent.replace('Location:', '').replace('📍', '').trim().toLowerCase();
-                }
-                card.dataset.location = locText;
+                const locPara = Array.from(card.querySelectorAll('p')).find(p => p.textContent.includes('Location:'));
+                card.dataset.location = locPara ? locPara.textContent.replace('Location:', '').trim().toLowerCase() : '';
             }
-            if (!card.dataset.price) {
+            // Fallback for price
+            if (!card.dataset.price || isNaN(parseFloat(card.dataset.price))) {
                 const priceDiv = card.querySelector('.price');
-                let rawPrice = priceDiv ? priceDiv.textContent.replace('₹', '').trim() : '0';
+                const rawPrice = priceDiv ? priceDiv.textContent.replace(/[^\d.]/g, '') : '0';
                 card.dataset.price = parseFloat(rawPrice) || 0;
+            } else {
+                card.dataset.price = parseFloat(card.dataset.price);
             }
         });
 
-        // ----- Populate location dropdown with unique locations (preserve original logic)-----
-        function populateLocationDropdown() {
+        // Populate Location Dropdown
+        function populateLocations() {
             const locations = new Set();
             cards.forEach(card => {
                 const loc = card.dataset.location;
-                if (loc && loc.trim() !== '') {
-                    locations.add(loc);
-                }
+                if (loc) locations.add(loc);
             });
+
+            // Clear existing except "All"
             while (locationSelect.options.length > 1) locationSelect.remove(1);
+
             Array.from(locations).sort().forEach(loc => {
                 const option = document.createElement('option');
                 option.value = loc;
@@ -563,110 +561,87 @@
             });
         }
 
-        // ----- Filter function (search + location) UNCHANGED LOGIC -----
-        function filterCards() {
+        // Main Update Function: Filters AND Sorts
+        function updateUI() {
             const query = searchInput.value.trim().toLowerCase();
-            const selectedLocation = locationSelect.value;
+            const locationFilter = locationSelect.value;
+            const sortCriteria = sortSelect.value;
+
+            // 1. Filter
             cards.forEach(card => {
                 const name = card.dataset.name || '';
                 const vendor = card.dataset.vendor || '';
                 const location = card.dataset.location || '';
-                const descriptionElem = card.querySelector('p');
-                const description = descriptionElem ? descriptionElem.textContent.toLowerCase() : '';
-                const matchesSearch = !query || name.includes(query) || vendor.includes(query) || location.includes(query) || description.includes(query);
-                const matchesLocation = selectedLocation === 'all' || location === selectedLocation;
+                const description = card.querySelector('p') ? card.querySelector('p').textContent.toLowerCase() : '';
+
+                const matchesSearch = !query || 
+                                     name.includes(query) || 
+                                     vendor.includes(query) || 
+                                     location.includes(query) || 
+                                     description.includes(query);
+                
+                const matchesLocation = locationFilter === 'all' || location === locationFilter;
+
                 if (matchesSearch && matchesLocation) {
                     card.classList.remove('hidden');
                 } else {
                     card.classList.add('hidden');
                 }
             });
-            updateNoProductsMessage();
-        }
 
-        // ----- Sort function (exactly original behavior, but with reorder)-----
-        function sortCards(criteria) {
-            const visibleCards = cards.filter(card => !card.classList.contains('hidden'));
-            const sorted = [...visibleCards].sort((a, b) => {
-                if (criteria === 'priceAsc') {
-                    return (parseFloat(a.dataset.price) || 0) - (parseFloat(b.dataset.price) || 0);
-                } else if (criteria === 'priceDesc') {
-                    return (parseFloat(b.dataset.price) || 0) - (parseFloat(a.dataset.price) || 0);
-                } else if (criteria === 'nameAsc') {
-                    const nameA = a.dataset.name || '';
-                    const nameB = b.dataset.name || '';
-                    return nameA.localeCompare(nameB);
-                } else if (criteria === 'vendorAsc') {
-                    const vendorA = a.dataset.vendor || '';
-                    const vendorB = b.dataset.vendor || '';
-                    return vendorA.localeCompare(vendorB);
-                } else {
-                    const idA = parseInt(a.dataset.productId) || 0;
-                    const idB = parseInt(b.dataset.productId) || 0;
-                    return idA - idB;
+            // 2. Sort visible cards first, then sort them by criteria
+            const visibleCards = cards.filter(c => !c.classList.contains('hidden'));
+            const hiddenCards = cards.filter(c => c.classList.contains('hidden'));
+
+            visibleCards.sort((a, b) => {
+                switch(sortCriteria) {
+                    case 'priceAsc':
+                        return a.dataset.price - b.dataset.price;
+                    case 'priceDesc':
+                        return b.dataset.price - a.dataset.price;
+                    case 'nameAsc':
+                        return a.dataset.name.localeCompare(b.dataset.name);
+                    case 'vendorAsc':
+                        return a.dataset.vendor.localeCompare(b.dataset.vendor);
+                    default:
+                        return (parseInt(a.dataset.productId) || 0) - (parseInt(b.dataset.productId) || 0);
                 }
             });
-            sorted.forEach(card => container.appendChild(card));
-            cards.filter(card => card.classList.contains('hidden')).forEach(card => container.appendChild(card));
-        }
 
-        // ----- Update no-products message (preserve functionality)-----
-        function updateNoProductsMessage() {
+            // 3. Re-append in order (this is efficient as it doesn't recreate nodes)
+            const fragment = document.createDocumentFragment();
+            visibleCards.forEach(card => fragment.appendChild(card));
+            hiddenCards.forEach(card => fragment.appendChild(card));
+            container.appendChild(fragment);
+
+            // 4. No products message
             let noProductsMsg = document.querySelector('.no-products');
-            const visibleCount = cards.filter(c => !c.classList.contains('hidden')).length;
-            if (visibleCount === 0) {
+            if (visibleCards.length === 0) {
                 if (!noProductsMsg) {
                     noProductsMsg = document.createElement('div');
                     noProductsMsg.className = 'no-products';
-                    noProductsMsg.innerHTML = '<i class="fas fa-store-slash"></i> ✨ No products match your filters. Try adjusting search or location!';
+                    noProductsMsg.innerHTML = '<i class="fas fa-search"></i> No products match your criteria. Try a different search!';
                     container.appendChild(noProductsMsg);
                 }
-            } else {
-                if (noProductsMsg) noProductsMsg.remove();
+            } else if (noProductsMsg) {
+                noProductsMsg.remove();
             }
         }
 
-        // ----- Apply filter only (search/location) without auto-sort - maintain original behaviour -----
-        function applyFilters() {
-            filterCards();
-        }
+        // Event Listeners
+        searchBtn.addEventListener('click', updateUI);
+        searchInput.addEventListener('input', updateUI); // Real-time search
+        sortSelect.addEventListener('change', updateUI);
+        locationSelect.addEventListener('change', updateUI);
 
-        // Event listeners - exactly same binding as original but with extra animation flair on cart badge
-        searchBtn.addEventListener('click', applyFilters);
-        searchInput.addEventListener('keyup', (e) => {
-            if (e.key === 'Enter') applyFilters();
-            else applyFilters();
-        });
+        // Initialization
+        populateLocations();
+        updateUI();
 
-        sortSelect.addEventListener('change', (e) => {
-            sortCards(e.target.value);
-            updateNoProductsMessage();
-        });
-
-        locationSelect.addEventListener('change', applyFilters);
-
-        // Populate dropdown and initial sort + filter
-        populateLocationDropdown();
-        sortCards('default');
-        applyFilters();
-
-        // optional: micro-interaction for cart badge (just visual delight)
-        if (cartBadge) {
-            const originalCount = parseInt(cartBadge.innerText) || 0;
-            if (originalCount > 0) {
-                cartBadge.classList.add('pop');
-                setTimeout(() => cartBadge.classList.remove('pop'), 300);
-            }
-            // subtle glow effect on cart link hover
-            const cartLink = document.getElementById('cartLink');
-            if (cartLink) {
-                cartLink.addEventListener('mouseenter', () => {
-                    cartBadge.style.transform = 'scale(1.1)';
-                });
-                cartLink.addEventListener('mouseleave', () => {
-                    cartBadge.style.transform = 'scale(1)';
-                });
-            }
+        // Cosmetic cart badge pop
+        if (cartBadge && parseInt(cartBadge.textContent) > 0) {
+            cartBadge.classList.add('pop');
+            setTimeout(() => cartBadge.classList.remove('pop'), 600);
         }
     })();
 </script>
