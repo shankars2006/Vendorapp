@@ -253,7 +253,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 ---
 
-<p align="center">Made with ❤️ by the Vendorapp Team</p>
+<p align="center">Made with ❤️ by the Gurushankar P J</p>
 <p align="center">
   <a href="#">⬆️ Back to Top</a>
 </p>
