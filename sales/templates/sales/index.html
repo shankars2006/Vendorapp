@@ -411,7 +411,7 @@
             <a href="{% url 'sales:customer_dashboard' %}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
             {% comment %} <a href="{% url 'sales:index' %}"><i class="fas fa-home"></i> Home</a> {% endcomment %}
             <a href="{% url 'sales:wishlist' %}"><i class="fas fa-heart"></i> Wishlist</a>
-            <a href="{% url 'sales:customer_dashboard' %}"><i class="fas fa-chart-line"></i> Dashboard</a>
+            {% comment %} <a href="{% url 'sales:customer_dashboard' %}"><i class="fas fa-chart-line"></i> Dashboard</a> {% endcomment %}
             <a href="{% url 'sales:logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a>
 {% else %}
             <a href="{% url 'sales:customer_login' %}"><i class="fas fa-key"></i> Login</a>

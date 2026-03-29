@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice - {{ vendor.user.username }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; background: #f8fafc; color: #0f172a; }
+        .invoice-container { max-width: 850px; margin: 2rem auto; background: white; padding: 4rem; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border-radius: 8px; }
+        .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 3rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 2rem; }
+        .logo-area h1 { margin: 0; font-size: 2rem; color: #f97316; letter-spacing: -0.5px; }
+        .invoice-title { text-align: right; }
+        .invoice-title h2 { margin: 0; font-size: 2.2rem; color: #64748b; font-weight: 300; letter-spacing: 2px; text-transform: uppercase; }
+        .invoice-title p { margin: 0.5rem 0 0; color: #94a3b8; font-size: 0.9rem; font-weight: 500; }
+        
+        .meta-row { display: flex; justify-content: space-between; margin-bottom: 3rem; }
+        .seller-info, .bank-info { width: 45%; }
+        .info-title { font-size: 0.85rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem; }
+        .info-text { margin: 0; font-size: 1.05rem; font-weight: 500; line-height: 1.6; }
+        
+        table { width: 100%; border-collapse: collapse; margin-bottom: 3rem; }
+        th { text-align: left; padding: 1rem; background: #f8fafc; color: #475569; font-size: 0.85rem; font-weight: 700; text-transform: uppercase; border-bottom: 2px solid #e2e8f0; }
+        td { padding: 1rem; border-bottom: 1px solid #e2e8f0; font-size: 0.95rem; }
+        .text-right { text-align: right; }
+        
+        .status-badge { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+        .bg-green { background: #dcfce7; color: #16a34a; }
+        .bg-red { background: #fee2e2; color: #dc2626; }
+        .bg-yellow { background: #fef3c7; color: #d97706; }
+        .text-red { color: #dc2626; font-weight: 600; }
+
+        .summary-box { width: 350px; margin-left: auto; background: #f8fafc; padding: 1.5rem; border-radius: 8px; border: 1px solid #e2e8f0; }
+        .summary-row { display: flex; justify-content: space-between; margin-bottom: 0.8rem; font-size: 1rem; }
+        .summary-row.total { font-weight: 700; font-size: 1.25rem; color: #0f172a; border-top: 2px dashed #cbd5e1; padding-top: 1rem; margin-top: 0.5rem; margin-bottom: 0; }
+        .summary-row.deduction { color: #dc2626; }
+        
+        .footer { margin-top: 4rem; text-align: center; color: #94a3b8; font-size: 0.85rem; border-top: 1px solid #e2e8f0; padding-top: 2rem; }
+        
+        .print-btn { display: block; width: 200px; margin: 2rem auto; text-align: center; background: #0f172a; color: white; text-decoration: none; padding: 1rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; border: none; font-family: inherit; font-size: 1rem; }
+        .print-btn:hover { background: #1e293b; transform: translateY(-2px); }
+        
+        @media print {
+            body { background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .invoice-container { box-shadow: none; padding: 0; margin: 0; max-width: 100%; border: none; }
+            .print-btn { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <button class="print-btn" onclick="window.print()">
+        📄 Print / Save as PDF
+    </button>
+
+    <div class="invoice-container">
+        <header class="header">
+            <div class="logo-area">
+                <h1>⚡ MultiStore</h1>
+                <p style="margin: 0.5rem 0 0; color: #64748b; font-size: 0.9rem;">Vendor Remuneration Statement</p>
+            </div>
+            <div class="invoice-title">
+                <h2>INVOICE</h2>
+                <p>Vendor Ref: #{{ vendor.id }}</p>
+                <p>Date Generated: {% now "d M Y, h:i A" %}</p>
+            </div>
+        </header>
+
+        <div class="meta-row">
+            <div class="seller-info">
+                <div class="info-title">Contractor Details</div>
+                <p class="info-text">
+                    <strong>{{ vendor.user.username }}</strong><br>
+                    {{ vendor.user.email }}<br>
+                    {{ vendor.location }}
+                </p>
+            </div>
+            <div class="bank-info text-right">
+                <div class="info-title">Payout Bank</div>
+                <p class="info-text">
+                    {% if vendor.bank_name %}
+                        <strong>{{ vendor.bank_name }}</strong><br>
+                        Account: {{ vendor.account_number }}<br>
+                        IFSC: {{ vendor.ifsc_code }}
+                    {% else %}
+                        <span style="color: #dc2626;">No Bank Configured</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Order Ref</th>
+                    <th>Product Status</th>
+                    <th class="text-right">Gross Volume</th>
+                    <th class="text-right">Platform Fee (10%)</th>
+                    <th class="text-right">Net Allocation</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in invoice_orders %}
+                <tr>
+                    <td>
+                        <strong>#{{ order.id }}</strong><br>
+                        <span style="font-size: 0.8rem; color: #94a3b8;">{{ order.created_at|date:"M d, Y" }}</span>
+                    </td>
+                    <td>
+                        {% if order.status == 'delivered' or order.status == 'claimed' %}
+                            <span class="status-badge bg-green">Successfully Delivered</span>
+                        {% elif order.status == 'cancelled' or order.status == 'returned' %}
+                            <span class="status-badge bg-red">Refunded / Returned</span>
+                        {% else %}
+                            <span class="status-badge bg-yellow">In Transit / Pending</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-right">
+                        {% if order.status == 'cancelled' or order.status == 'returned' %}
+                            <span style="text-decoration: line-through; color: #94a3b8;">₹{{ order.total_price }}</span><br>
+                            <span class="text-red">-₹{{ order.total_price }} (Refund)</span>
+                        {% else %}
+                            ₹{{ order.total_price }}
+                        {% endif %}
+                    </td>
+                    <td class="text-right" style="color: #dc2626;">
+                        {% if order.status == 'cancelled' or order.status == 'returned' or order.status != 'delivered' and order.status != 'claimed' %}
+                            —
+                        {% else %}
+                            -₹{% widthratio order.total_price 100 10 %}
+                        {% endif %}
+                    </td>
+                    <td class="text-right">
+                        {% if order.status == 'cancelled' or order.status == 'returned' or order.status != 'delivered' and order.status != 'claimed' %}
+                            <strong style="color: #94a3b8;">₹0.00</strong>
+                        {% else %}
+                            <strong style="color: #16a34a;">+₹{% widthratio order.total_price 100 90 %}</strong>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 3rem; color: #94a3b8;">
+                        No viable historical transactions found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="summary-box">
+            <div class="summary-row">
+                <span>Lifetime Gross Value</span>
+                <span>₹{{ total_gross|floatformat:2 }}</span>
+            </div>
+            <div class="summary-row deduction">
+                <span>Total Platform Fees</span>
+                <span>-₹{{ total_fee|floatformat:2 }}</span>
+            </div>
+            <div class="summary-row">
+                <span>Lifetime Net Allowed</span>
+                <span>₹{{ total_net|floatformat:2 }}</span>
+            </div>
+            <div class="summary-row">
+                <span>Total Paid Out</span>
+                <span style="color: #16a34a;">₹{{ total_paid|floatformat:2 }}</span>
+            </div>
+            <div class="summary-row total">
+                <span>Pending Balance</span>
+                <span style="color: #2563eb;">₹{{ pending_balance|floatformat:2 }}</span>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p>This is a computer-generated invoice document outlining platform transactions.</p>
+        </footer>
+    </div>
+
+</body>
+</html>

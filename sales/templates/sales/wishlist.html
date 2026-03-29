@@ -47,7 +47,10 @@
 <body>
 
 <div class="amazon-header">
-    <a href="/" class="logo">Multi Vendor Store</a>
+    <div style="display: flex; align-items: center; gap: 1rem;">
+        <a href="javascript:history.back()" style="color: white; text-decoration: none; font-size: 1.5rem; font-weight: bold; transition: 0.2s;" onmouseover="this.style.color='#ff9900'" onmouseout="this.style.color='white'" title="Go Back">&#8592;</a>
+        <a href="/" class="logo">Multi Vendor Store</a>
+    </div>
     <div class="nav-links">
         <a href="/"><i class="fas fa-home"></i> Home</a>
         <a href="{% url 'sales:customer_dashboard' %}"><i class="fas fa-user"></i> Dashboard</a>
@@ -59,11 +62,6 @@
 <div class="container">
     <div class="wishlist-header">
         <h1>❤ My Wishlist</h1>
-        {% if wishlist_items %}
-        <a href="{% url 'sales:add_all_to_cart' %}" class="btn btn-primary" style="background: #ff9900; color: #232f3e;">
-            <i class="fas fa-cart-plus"></i> Add All to Cart
-        </a>
-        {% endif %}
     </div>
 
     {% if wishlist_items %}
@@ -83,7 +81,7 @@
 
             <div class="actions">
                 {% if item.product.quantity > 0 %}
-                    <a href="{% url 'sales:move_to_cart' item.id %}" class="btn btn-primary">Move to Cart</a>
+                    <a href="{% url 'sales:product_detail' item.product.id %}" class="btn btn-primary" style="background: #ff9900; color: #232f3e;">Buy Now</a>
                 {% else %}
                     <button class="btn btn-disabled">Out of Stock</button>
                 {% endif %}

@@ -208,8 +208,11 @@
 <body>
 
 <div class="navbar">
-    <div class="nav-left">
-        Multi Vendor Store
+    <div style="display: flex; align-items: center; gap: 1rem;">
+        <a href="javascript:history.back()" style="color: #f59e0b; text-decoration: none; font-size: 1.5rem; font-weight: bold; transition: 0.2s;" onmouseover="this.style.color='#d97706'" onmouseout="this.style.color='#f59e0b'" title="Go Back">&#8592;</a>
+        <div class="nav-left">
+            Multi Vendor Store
+        </div>
     </div>
     <div class="nav-right">
         <a href="{% url 'sales:index' %}">Home</a>
@@ -341,24 +344,28 @@
         <div id="review-form" style="background: #fff; border: 2px solid #f1f5f9; padding: 2rem; border-radius: 24px; height: fit-content; position: sticky; top: 100px;">
             <h3 style="font-size: 1.5rem; margin-bottom: 1.5rem; color: #0f172a;">Write a Review</h3>
             {% if request.user.is_authenticated %}
-            <form method="POST" action="{% url 'sales:submit_review' product.id %}">
-                {% csrf_token %}
-                <label style="display: block; font-weight: 700; margin-bottom: 0.5rem; font-size: 0.9rem; color: #4b5563;">YOUR RATING</label>
-                <div class="star-rating" style="display: flex; gap: 10px; font-size: 2rem; color: #cbd5e1; cursor: pointer; margin-bottom: 0.5rem;">
-                    <i class="far fa-star" data-rating="1" title="Poor"></i>
-                    <i class="far fa-star" data-rating="2" title="Fair"></i>
-                    <i class="far fa-star" data-rating="3" title="Good"></i>
-                    <i class="far fa-star" data-rating="4" title="Very Good"></i>
-                    <i class="far fa-star" data-rating="5" title="Excellent"></i>
-                </div>
-                <div id="rating-label" style="font-weight: 600; color: #f59e0b; margin-bottom: 1.5rem; min-height: 1.2rem;">Excellent</div>
-                <input type="hidden" name="rating" id="id_rating" value="5">
-                
-                <label style="display: block; font-weight: 700; margin-bottom: 0.5rem; font-size: 0.9rem; color: #4b5563;">YOUR REVIEW (OPTIONAL)</label>
-                <textarea name="review_text" rows="4" style="width: 100%; padding: 1rem; border-radius: 16px; border: 2px solid #e5e7eb; margin-bottom: 1.5rem; outline: none; font-size: 1rem; resize: none;" placeholder="What did you think of the product?"></textarea>
-                
-                <button type="submit" class="btn" style="width: 100%; border: none;">Submit Review</button>
-            </form>
+                {% if has_purchased %}
+                <form method="POST" action="{% url 'sales:submit_review' product.id %}">
+                    {% csrf_token %}
+                    <label style="display: block; font-weight: 700; margin-bottom: 0.5rem; font-size: 0.9rem; color: #4b5563;">YOUR RATING</label>
+                    <div class="star-rating" style="display: flex; gap: 10px; font-size: 2rem; color: #cbd5e1; cursor: pointer; margin-bottom: 0.5rem;">
+                        <i class="far fa-star" data-rating="1" title="Poor"></i>
+                        <i class="far fa-star" data-rating="2" title="Fair"></i>
+                        <i class="far fa-star" data-rating="3" title="Good"></i>
+                        <i class="far fa-star" data-rating="4" title="Very Good"></i>
+                        <i class="far fa-star" data-rating="5" title="Excellent"></i>
+                    </div>
+                    <div id="rating-label" style="font-weight: 600; color: #f59e0b; margin-bottom: 1.5rem; min-height: 1.2rem;">Excellent</div>
+                    <input type="hidden" name="rating" id="id_rating" value="5">
+                    
+                    <label style="display: block; font-weight: 700; margin-bottom: 0.5rem; font-size: 0.9rem; color: #4b5563;">YOUR REVIEW (OPTIONAL)</label>
+                    <textarea name="review_text" rows="4" style="width: 100%; padding: 1rem; border-radius: 16px; border: 2px solid #e5e7eb; margin-bottom: 1.5rem; outline: none; font-size: 1rem; resize: none;" placeholder="What did you think of the product?"></textarea>
+                    
+                    <button type="submit" class="btn" style="width: 100%; border: none;">Submit Review</button>
+                </form>
+                {% else %}
+                <p style="color: #64748b;">You must purchase this product before you can leave a review.</p>
+                {% endif %}
             {% else %}
             <p style="color: #64748b;">Please <a href="{% url 'sales:customer_login' %}" style="color: #0d9488; font-weight: 600;">login</a> to write a review.</p>
             {% endif %}

@@ -369,6 +369,7 @@
     </div>
     <div class="header-right">
         Welcome, {{ vendor.user.username }}
+        <a href="javascript:void(0)" onclick="openRemunerationModal()">Remuneration</a>
         <a href="{% url 'sales:add_product' %}">Add Product</a>
         <a href="{% url 'sales:logout' %}">Logout</a>
     </div>
@@ -408,13 +409,25 @@
                 <i class="fas fa-boxes"></i> Stock: <span style="color: {% if product.quantity < 10 %}#ef4444{% else %}#10b981{% endif %};">{{ product.quantity }} {{ product.unit_or_size|default:"" }}</span>
             </div>
             <div class="price">₹{{ product.price }}</div>
-            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
                 <a href="{% url 'sales:edit_product' product.id %}" class="btn">Edit</a>
                 <a href="{% url 'sales:delete_product' product.id %}" 
                    class="btn btn-danger" 
                    onclick="return confirm('Are you sure to delete this product?')">
                    Delete
                 </a>
+                <button type="button" class="btn" style="background:#8b5cf6; border-color:#7c3aed; margin-left:auto;" onclick="openReviewsModal('{{ product.id }}')">
+                    View Reviews ⭐
+                </button>
+            </div>
+
+            <!-- HIDDEN REVIEWS DATA -->
+            <div id="reviews-data-{{ product.id }}" style="display:none;">
+                {% for review in product.reviews.all %}
+                <div class="review-item" data-customer="{{ review.customer.username }}" data-rating="{{ review.rating }}" data-text="{{ review.review_text }}"></div>
+                {% empty %}
+                <div class="no-reviews"></div>
+                {% endfor %}
             </div>
         </div>
         {% endfor %}
@@ -439,6 +452,7 @@
             <!-- HIDDEN PAYMENT DATA -->
             <div id="payment-data-{{ order.id }}" style="display:none;">
                 <span data-method="{{ order.payment_method }}"></span>
+                <span data-total="{{ order.total_price }}"></span>
                 <span data-card-name="{{ order.payment_card_name }}"></span>
                 <span data-card-num="{{ order.payment_card_number }}"></span>
                 <span data-card-exp="{{ order.payment_card_exp }}"></span>
@@ -584,6 +598,7 @@
             <!-- HIDDEN PAYMENT DATA -->
             <div id="payment-data-{{ order.id }}" style="display:none;">
                 <span data-method="{{ order.payment_method }}"></span>
+                <span data-total="{{ order.total_price }}"></span>
                 <span data-card-name="{{ order.payment_card_name }}"></span>
                 <span data-card-num="{{ order.payment_card_number }}"></span>
                 <span data-card-exp="{{ order.payment_card_exp }}"></span>
@@ -616,6 +631,147 @@
     </div>
 </div>
 
+<!-- REVIEWS MODAL -->
+<div id="reviewsModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeReviewsModal()">&times;</span>
+        <h3 style="font-size:1.5rem; font-weight:800; color:#0f172a; margin-bottom:1.5rem;">Product Reviews</h3>
+        
+        <div id="reviewsModalBody" style="max-height: 400px; overflow-y: auto; padding-right: 10px;">
+            <!-- Rendered via JS -->
+        </div>
+    </div>
+</div>
+
+<!-- REVIEWS MODAL -->
+<div id="reviewsModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeReviewsModal()">&times;</span>
+        <h3 style="font-size:1.5rem; font-weight:800; color:#0f172a; margin-bottom:1.5rem;">Product Reviews</h3>
+        
+        <div id="reviewsModalBody" style="max-height: 400px; overflow-y: auto; padding-right: 10px;">
+            <!-- Rendered via JS -->
+        </div>
+    </div>
+</div>
+
+<!-- REMUNERATION MODAL -->
+<div id="remunerationModal" class="modal">
+    <div class="modal-content" style="max-width: 600px;">
+        <span class="close-modal" onclick="closeRemunerationModal()">&times;</span>
+        <h3 style="font-size:1.5rem; font-weight:800; color:#0f172a; margin-bottom:1.5rem;">Financial Remuneration</h3>
+        
+        <div id="remunerationModalBody" style="max-height: 500px; overflow-y: auto; padding-right: 10px;">
+            {% if not vendor.bank_name %}
+                <div style="background:#fffbeb; border:1px solid #fde68a; padding:1.5rem; border-radius:12px; margin-bottom:1.5rem;">
+                    <h4 style="color:#b45309; margin-bottom:0.5rem; display:flex; align-items:center; gap:0.5rem;"><i class="fas fa-exclamation-triangle"></i> Action Required</h4>
+                    <p style="color:#92400e; font-size:0.95rem; margin:0;">Please configure your bank details to receive payouts from the platform automatically.</p>
+                </div>
+                <form method="POST" action="{% url 'sales:update_bank_details' %}" style="display:flex; flex-direction:column; gap:1.25rem;">
+                    {% csrf_token %}
+                    <div>
+                        <label style="display:block; font-size:0.9rem; font-weight:600; color:#475569; margin-bottom:0.5rem;">Bank Name</label>
+                        <input type="text" name="bank_name" required placeholder="e.g. State Bank of India" style="width:100%; padding:0.8rem; border:1px solid #cbd5e1; border-radius:8px; outline:none; font-family:inherit;">
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:0.9rem; font-weight:600; color:#475569; margin-bottom:0.5rem;">Account Number</label>
+                        <input type="text" name="account_number" required placeholder="e.g. 1234567890" style="width:100%; padding:0.8rem; border:1px solid #cbd5e1; border-radius:8px; outline:none; font-family:inherit;">
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:0.9rem; font-weight:600; color:#475569; margin-bottom:0.5rem;">IFSC Code</label>
+                        <input type="text" name="ifsc_code" required placeholder="e.g. SBIN0001234" style="width:100%; padding:0.8rem; border:1px solid #cbd5e1; border-radius:8px; outline:none; font-family:inherit;">
+                    </div>
+                    <button type="submit" style="background:#3b82f6; color:white; border:none; padding:1rem; border-radius:8px; font-weight:700; font-size:1.05rem; cursor:pointer; margin-top:0.5rem;">Setup Account</button>
+                </form>
+            {% else %}
+                <!-- Connected Account Info -->
+                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:1.25rem; border-radius:12px; margin-bottom:1.5rem; display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <p style="color:#64748b; font-size:0.8rem; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; margin:0;">Connected Bank</p>
+                        <p style="color:#0f172a; font-weight:700; margin:0.25rem 0 0;">{{ vendor.bank_name }} (***{{ vendor.account_number|slice:"-4:" }})</p>
+                    </div>
+                    <i class="fas fa-check-circle" style="color:#10b981; font-size:1.5rem;"></i>
+                </div>
+
+                <!-- Financial Stats -->
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.5rem;">
+                    <div style="background:white; border:1px solid #e2e8f0; padding:1.25rem; border-radius:12px;">
+                        <span style="color:#64748b; font-size:0.85rem; font-weight:500;">Lifetime Gross Sales</span>
+                        <div style="font-size:1.3rem; font-weight:800; color:#0f172a; margin-top:0.25rem;">₹{{ total_gross|floatformat:2 }}</div>
+                    </div>
+                    <div style="background:#fff1f2; border:1px solid #fecdd3; padding:1.25rem; border-radius:12px;">
+                        <span style="color:#be123c; font-size:0.85rem; font-weight:500;">Platform Fees (10%)</span>
+                        <div style="font-size:1.3rem; font-weight:800; color:#e11d48; margin-top:0.25rem;">-₹{{ total_fee|floatformat:2 }}</div>
+                    </div>
+                    <div style="background:#f0fdf4; border:1px solid #bbf7d0; padding:1.25rem; border-radius:12px;">
+                        <span style="color:#15803d; font-size:0.85rem; font-weight:500;">Lifetime Net Profit</span>
+                        <div style="font-size:1.3rem; font-weight:800; color:#16a34a; margin-top:0.25rem;">₹{{ total_net|floatformat:2 }}</div>
+                    </div>
+                    <div style="background:#eff6ff; border:1px solid #bfdbfe; padding:1.25rem; border-radius:12px;">
+                        <span style="color:#1d4ed8; font-size:0.85rem; font-weight:500;">Pending Payout</span>
+                        <div style="font-size:1.3rem; font-weight:800; color:#2563eb; margin-top:0.25rem;">₹{{ pending_balance|floatformat:2 }}</div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <a href="{% url 'sales:vendor_invoice' vendor.id %}" target="_blank" style="display:inline-block; padding: 0.8rem 1.5rem; background: #0f172a; color: white; border-radius: 8px; font-weight: 600; text-decoration: none; font-size: 0.95rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);"><i class="fas fa-file-pdf"></i> Download Detailed Invoice (PDF)</a>
+                </div>
+
+                <!-- Transaction History -->
+                <h4 style="font-size:1.1rem; font-weight:700; color:#1e293b; margin:0 0 1rem; padding-bottom:0.5rem; border-bottom:2px solid #f1f5f9;">Recent Transactions</h4>
+                
+                {% if invoice_orders %}
+                    <div style="display:flex; flex-direction:column; gap:0.75rem; margin-bottom: 2rem;">
+                        {% for order in invoice_orders|slice:":10" %}
+                        <div style="display:flex; justify-content:space-between; align-items:center; background:white; border:1px solid #e2e8f0; padding:1rem; border-radius:8px;">
+                            <div>
+                                <p style="font-weight:600; color:#0f172a; margin:0;">Order #{{ order.id }}</p>
+                                <p style="font-size:0.8rem; color:#64748b; margin:0.2rem 0 0;">{{ order.created_at|date:"M d, Y" }}</p>
+                            </div>
+                            <div style="text-align: right;">
+                                {% if order.status == 'cancelled' or order.status == 'returned' %}
+                                    <span style="color: #dc2626; font-weight: 700; font-size: 0.95rem;">Refund Deducted</span>
+                                    <p style="margin: 0; font-size: 0.8rem; color: #94a3b8; text-decoration: line-through;">₹{{ order.total_price }}</p>
+                                {% else %}
+                                    <span style="color: #16a34a; font-weight: 700; font-size: 0.95rem;">+₹{% widthratio order.total_price 100 90 %}</span>
+                                    <p style="margin: 0; font-size: 0.8rem; color: #64748b;">(Gross: ₹{{ order.total_price }})</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div style="text-align:center; padding:1.5rem 0; color:#94a3b8; font-size:0.95rem; margin-bottom: 2rem;">
+                        No recent transactions found.
+                    </div>
+                {% endif %}
+
+                <!-- Payout History -->
+                <h4 style="font-size:1.1rem; font-weight:700; color:#1e293b; margin-bottom:1rem; padding-bottom:0.5rem; border-bottom:2px solid #f1f5f9;">Payout History</h4>
+                
+                {% if payouts %}
+                    <div style="display:flex; flex-direction:column; gap:0.75rem;">
+                        {% for payout in payouts %}
+                        <div style="display:flex; justify-content:space-between; align-items:center; background:white; border:1px solid #e2e8f0; padding:1rem; border-radius:8px;">
+                            <div>
+                                <p style="font-weight:600; color:#0f172a; margin:0;">₹{{ payout.net_payout|floatformat:2 }} Paid</p>
+                                <p style="font-size:0.8rem; color:#64748b; margin:0.2rem 0 0;">{{ payout.created_at|date:"M d, Y · h:i A" }}</p>
+                            </div>
+                            <span style="background:#dcfce7; color:#16a34a; font-size:0.75rem; font-weight:700; padding:0.25rem 0.75rem; border-radius:20px;">Settled</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div style="text-align:center; padding:2rem 0; color:#94a3b8;">
+                        <i class="fas fa-file-invoice-dollar" style="font-size:2rem; margin-bottom:0.5rem;"></i>
+                        <p style="margin:0; font-size:0.95rem;">No payouts have been processed yet.</p>
+                    </div>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+
 <script>
     function openPaymentModal(orderId) {
         const dataBox = document.getElementById('payment-data-' + orderId);
@@ -637,7 +793,7 @@
                 <label class="payment-label">Expiry</label>
                 <div class="payment-val">${dataBox.querySelector('[data-card-exp]').getAttribute('data-card-exp') || 'MM/YY'}</div>
             `;
-        } else {
+        } else if (method === 'upi') {
             const imgSrc = dataBox.querySelector('[data-upi-img]') ? dataBox.querySelector('[data-upi-img]').getAttribute('data-upi-img') : null;
             html = `
                 <label class="payment-label">Payment Method</label>
@@ -645,6 +801,16 @@
                 
                 <label class="payment-label">Transaction Screenshot</label>
                 ${imgSrc ? `<img src="${imgSrc}" style="width:100%; border-radius:16px; margin-top:0.5rem; border:1px solid #e2e8f0; box-shadow:0 4px 10px rgba(0,0,0,0.05);">` : '<div class="payment-val">No screenshot uploaded</div>'}
+            `;
+        } else if (method === 'cod') {
+            const total = dataBox.querySelector('[data-total]') ? dataBox.querySelector('[data-total]').getAttribute('data-total') : '';
+            html = `
+                <label class="payment-label">Payment Method</label>
+                <div class="payment-val">Cash on Delivery 💵</div>
+                
+                <div style="margin-top: 1.5rem; padding: 1rem; background: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 8px;">
+                    <p style="margin: 0; font-size: 0.95rem; color: #92400e; font-weight: 600;">⚠️ Collect exactly ₹${total} from the customer at the time of delivery.</p>
+                </div>
             `;
         }
         
@@ -656,11 +822,75 @@
         document.getElementById('paymentModal').style.display = 'none';
     }
 
-    // Close on outside click
+    // REVIEWS MODAL LOGIC
+    function openReviewsModal(productId) {
+        const modal = document.getElementById('reviewsModal');
+        const body = document.getElementById('reviewsModalBody');
+        const dataBox = document.getElementById(`reviews-data-${productId}`);
+        
+        let html = '';
+        const reviewItems = dataBox.querySelectorAll('.review-item');
+        
+        if (reviewItems.length === 0) {
+            html = `
+                <div style="text-align:center; padding: 2.5rem 1rem; color: #64748b; background: #f8fafc; border-radius: 16px; border: 2px dashed #cbd5e1;">
+                    <i class="far fa-comment-slash" style="font-size: 2.5rem; margin-bottom: 1rem; color: #94a3b8;"></i>
+                    <p style="font-weight: 500; font-size: 1.1rem; margin: 0;">No reviews yet for this product.</p>
+                </div>
+            `;
+        } else {
+            reviewItems.forEach(item => {
+                const customer = item.getAttribute('data-customer');
+                const rating = parseInt(item.getAttribute('data-rating'));
+                const text = item.getAttribute('data-text');
+                
+                let stars = '';
+                for (let i = 1; i <= 5; i++) {
+                    stars += `<i class="${i <= rating ? 'fas' : 'far'} fa-star" style="color: #f59e0b;"></i>`;
+                }
+
+                html += `
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                            <span style="font-weight: 700; color: #334155;"><i class="fas fa-user-circle"></i> ${customer}</span>
+                            <span>${stars}</span>
+                        </div>
+                        <p style="color: #475569; font-size: 0.95rem; margin: 0; line-height: 1.6;">${text || '<i style="color:#94a3b8;">No written text provided.</i>'}</p>
+                    </div>
+                `;
+            });
+        }
+        
+        body.innerHTML = html;
+        modal.style.display = 'flex';
+    }
+
+    function closeReviewsModal() {
+        document.getElementById('reviewsModal').style.display = 'none';
+    }
+
+    // REMUNERATION MODAL LOGIC
+    function openRemunerationModal() {
+        document.getElementById('remunerationModal').style.display = 'flex';
+    }
+
+    function closeRemunerationModal() {
+        document.getElementById('remunerationModal').style.display = 'none';
+    }
+
+    // Close on outside click for all modals
     window.onclick = function(event) {
-        const modal = document.getElementById('paymentModal');
-        if (event.target == modal) {
+        const paymentModal = document.getElementById('paymentModal');
+        const reviewsModal = document.getElementById('reviewsModal');
+        const remunerationModal = document.getElementById('remunerationModal');
+        if (event.target == paymentModal) {
             closePaymentModal();
+        }
+        if (event.target == reviewsModal) {
+            closeReviewsModal();
+        }
+        if (event.target == remunerationModal) {
+            closeRemunerationModal();
         }
     }
 </script>

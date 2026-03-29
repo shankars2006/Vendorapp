@@ -9,6 +9,8 @@ urlpatterns = [
     path("vendor-register/", views.vendor_register, name="vendor_register"),
     path("vendor-login/", views.vendor_login, name="vendor_login"),
     path("vendor-dashboard/", views.vendor_dashboard, name="vendor_dashboard"),
+    path("vendor/remuneration/update-bank/", views.update_bank_details, name="update_bank_details"),
+    path("vendor/invoice/<int:vendor_id>/", views.vendor_invoice, name="vendor_invoice"),
     path(
         "update-order-status/<int:order_id>/",
         views.update_order_status,
@@ -21,6 +23,12 @@ urlpatterns = [
         views.toggle_vendor_approval,
         name="toggle_vendor_approval",
     ),
+    path(
+        "delete-unapproved-vendor/<int:vendor_id>/",
+        views.delete_unapproved_vendor,
+        name="delete_unapproved_vendor",
+    ),
+    path("ad/payout/<int:vendor_id>/", views.process_payout, name="process_payout"),
     # Customer
     path("customer-register/", views.customer_register, name="customer_register"),
     path("customer-login/", views.customer_login, name="customer_login"),

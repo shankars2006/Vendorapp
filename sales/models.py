@@ -14,9 +14,26 @@ class Vendor(models.Model):
     email = models.EmailField(blank=True, null=True)
 
     is_approved = models.BooleanField(default=False)
+    
+    # Financial details
+    bank_name = models.CharField(max_length=200, blank=True, null=True)
+    account_number = models.CharField(max_length=50, blank=True, null=True)
+    ifsc_code = models.CharField(max_length=20, blank=True, null=True)
 
     def __str__(self):
         return self.user.username
+
+
+# Payout Model (Admin Remuneration)
+class Payout(models.Model):
+    vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE, related_name="payouts")
+    gross_volume = models.DecimalField(max_digits=12, decimal_places=2)
+    platform_fee = models.DecimalField(max_digits=12, decimal_places=2)
+    net_payout = models.DecimalField(max_digits=12, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Payout of ₹{self.net_payout} to {self.vendor.user.username}"
 
 
 # Product Model

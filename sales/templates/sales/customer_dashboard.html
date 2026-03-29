@@ -432,6 +432,7 @@
                 <div class="meta-info">
                     <span><i class="fas fa-store"></i> Seller: {{ order.vendor.username }}</span>
                     <span><i class="fas fa-rupee-sign"></i> <span class="price-highlight">₹{{ order.total_price }}</span></span>
+                    <span><i class="fas fa-credit-card"></i> {% if order.payment_method == 'cod' %}Cash on Delivery{% elif order.payment_method == 'upi' %}UPI{% else %}Card{% endif %}</span>
                     <span><i class="far fa-calendar-alt"></i> Ordered: {{ order.created_at|date:"d M Y" }}</span>
                 </div>
             </div>
@@ -634,6 +635,7 @@
                 <div class="meta-info">
                     <span><i class="fas fa-store"></i> Seller: {{ order.vendor.username }}</span>
                     <span><i class="fas fa-rupee-sign"></i> <span class="price-highlight">₹{{ order.total_price }}</span></span>
+                    <span><i class="fas fa-credit-card"></i> {% if order.payment_method == 'cod' %}Cash on Delivery{% elif order.payment_method == 'upi' %}UPI{% else %}Card{% endif %}</span>
                     <span><i class="far fa-calendar-alt"></i> Ordered: {{ order.created_at|date:"d M Y" }}</span>
                 </div>
             </div>
@@ -661,6 +663,7 @@
                 <div class="meta-info">
                     <span><i class="fas fa-store"></i> Seller: {{ order.vendor.username }}</span>
                     <span><i class="fas fa-rupee-sign"></i> <span class="price-highlight">₹{{ order.total_price }}</span></span>
+                    <span><i class="fas fa-credit-card"></i> {% if order.payment_method == 'cod' %}Cash on Delivery{% elif order.payment_method == 'upi' %}UPI{% else %}Card{% endif %}</span>
                     <span><i class="far fa-calendar-alt"></i> Ordered: {{ order.created_at|date:"d M Y" }}</span>
                 </div>
             </div>

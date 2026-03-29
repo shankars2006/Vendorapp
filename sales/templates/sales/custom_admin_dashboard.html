@@ -403,6 +403,7 @@
                             <th>Email</th>
                             <th>Location</th>
                             <th>Status</th>
+                            <th style="text-align: right;">Earnings</th>
                             <th style="text-align: center;">Action</th>
                         </tr>
                     </thead>
@@ -423,6 +424,9 @@
                                     </span>
                                 {% endif %}
                             </td>
+                            <td style="text-align: right; font-weight: 600; color: #10b981;">
+                                ₹{{ vendor.total_gross|floatformat:2 }}
+                            </td>
                             <td style="text-align: center;">
                                 <a href="{% url 'sales:toggle_vendor_approval' vendor.id %}" 
                                    class="action-btn {% if vendor.is_approved %}revoke{% else %}approve{% endif %}">
@@ -432,6 +436,19 @@
                                         <i>✔</i> Approve
                                     {% endif %}
                                 </a>
+                                {% if not vendor.is_approved %}
+                                <a href="{% url 'sales:delete_unapproved_vendor' vendor.id %}" 
+                                   class="action-btn revoke" style="margin-left: 0.5rem;"
+                                   onclick="return confirm('WARNING: This will permanently delete the vendor account and all associated data. Are you sure?');">
+                                    <i>🗑</i> Delete
+                                </a>
+                                {% endif %}
+                                {% if vendor.is_approved %}
+                                <button type="button" class="action-btn" style="background:#8b5cf6; color:white; border-color:#8b5cf6; margin-left:0.5rem; cursor:pointer;" 
+                                        onclick="openTransferModal('{{ vendor.id }}', '{{ vendor.bank_name|default:''|escapejs }}', '{{ vendor.total_gross|default:0 }}', '{{ vendor.total_net|default:0 }}', '{{ vendor.pending_balance|default:0 }}')">
+                                    <i>💸</i> Transfer
+                                </button>
+                                {% endif %}
                             </td>
                         </tr>
                         {% empty %}
@@ -447,9 +464,18 @@
         <!-- Insight note -->
         <div class="info-note">
             <i>💡</i>
-            <span><strong>Admin tip:</strong> Approve vendors to unlock their storefront. Charts update automatically based on real‑time order data.</span>
+            <span><strong>Admin tip:</strong> Approve vendors to unlock their storefront. Charts update automatically based on real‑time order data. Use the Transfer tool to safely distribute payouts!</span>
         </div>
     </main>
+
+    <!-- TRANSFER MODAL -->
+    <div id="transferModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:999; background:rgba(0,0,0,0.5); align-items:center; justify-content:center;">
+        <div style="background:white; padding:2rem; border-radius:1rem; width:100%; max-width:450px; position:relative; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
+            <span onclick="closeTransferModal()" style="position:absolute; right:1.5rem; top:1.5rem; cursor:pointer; font-size:1.5rem; color:#64748b;">&times;</span>
+            <h3 style="margin-top:0; border-bottom:1px solid #e2e8f0; padding-bottom:1rem; margin-bottom:1.5rem; color:#0f172a;">Transfer to Vendor</h3>
+            <div id="transferModalBody"></div>
+        </div>
+    </div>
 
     <script>
         // Data passed from Django view (exactly as original)
@@ -555,6 +581,76 @@
                         }
                     }
                 }
+            }
+        });
+
+        // TRANSFER MODAL LOGIC
+        function openTransferModal(vendorId, bankName, grossStr, netStr, pendingStr) {
+            const body = document.getElementById('transferModalBody');
+            
+            if (!bankName || bankName.trim() === '' || bankName === 'None') {
+                body.innerHTML = `
+                    <div style="text-align:center; padding:2rem; background:#fee2e2; border-radius:0.75rem; border:1px solid #fca5a5; color:#991b1b;">
+                        <i style="font-size:3rem; margin-bottom:1rem; display:block;">⚠️</i>
+                        <p style="font-weight:600; font-size:1.1rem; margin:0;">Vendor hasn't added a bank account.</p>
+                        <p style="margin-top:0.5rem; font-size:0.9rem; opacity:0.8;">They must configure their remuneration settings first.</p>
+                    </div>
+                `;
+            } else {
+                const gross = parseFloat(grossStr).toFixed(2);
+                const net = parseFloat(netStr).toFixed(2);
+                const pending = parseFloat(pendingStr).toFixed(2);
+                const fee = (gross - net).toFixed(2);
+
+                body.innerHTML = `
+                    <div style="background:#f8fafc; padding:1.25rem; border-radius:0.5rem; border:1px solid #e2e8f0; margin-bottom:1.5rem;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:0.75rem;">
+                            <span style="color:#64748b;">Gross Earnings:</span>
+                            <span style="font-weight:600; color:#0f172a;">₹${gross}</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:0.75rem; color:#dc2626;">
+                            <span>Admin Commission (10%):</span>
+                            <span>-₹${fee}</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:0.75rem;">
+                            <span style="color:#64748b;">Lifetime Net Payout:</span>
+                            <span style="font-weight:600; color:#0f172a;">₹${net}</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; margin-top:1rem; padding-top:1rem; border-top:2px dashed #cbd5e1; font-size:1.15rem;">
+                            <strong style="color:#0f172a;">Pending Transfer:</strong>
+                            <strong style="color:#15803d;">₹${pending}</strong>
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 1.5rem;">
+                        <a href="/vendor/invoice/${vendorId}/" target="_blank" style="display:block; text-align:center; padding: 0.8rem; background: #0f172a; color: white; border-radius: 0.5rem; font-weight: 600; text-decoration: none; font-size: 1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); width: 100%; box-sizing: border-box;">
+                            📄 View / Download Detailed Invoice PDF
+                        </a>
+                    </div>
+                    ${pending > 0 ? `
+                        <form method="POST" action="/ad/payout/${vendorId}/">
+                            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                            <button type="submit" style="width:100%; padding:0.9rem; background:#10b981; color:white; border:none; border-radius:0.5rem; font-weight:700; font-size:1.1rem; cursor:pointer; box-shadow:0 4px 6px -1px rgba(16,185,129,0.3); transition:all 0.2s;">
+                                Proceed to Pay ₹${pending}
+                            </button>
+                        </form>
+                    ` : `
+                        <div style="text-align:center; color:#15803d; font-weight:600; padding:1.2rem; background:#dcfce7; border-radius:0.5rem; border:1px solid #bbf7d0;">
+                            ✨ All payments successfully settled!
+                        </div>
+                    `}
+                `;
+            }
+            document.getElementById('transferModal').style.display = 'flex';
+        }
+        
+        function closeTransferModal() {
+            document.getElementById('transferModal').style.display = 'none';
+        }
+
+        window.addEventListener('click', function(event) {
+            const transferModal = document.getElementById('transferModal');
+            if (event.target === transferModal) {
+                closeTransferModal();
             }
         });
     </script>
