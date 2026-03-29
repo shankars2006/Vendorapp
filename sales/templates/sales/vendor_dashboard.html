@@ -424,7 +424,10 @@
             <!-- HIDDEN REVIEWS DATA -->
             <div id="reviews-data-{{ product.id }}" style="display:none;">
                 {% for review in product.reviews.all %}
-                <div class="review-item" data-customer="{{ review.customer.username }}" data-rating="{{ review.rating }}" data-text="{{ review.review_text }}"></div>
+                <div class="review-item"
+                     data-customer="{{ review.customer.username|escapejs }}"
+                     data-rating="{{ review.rating }}"
+                     data-text="{{ review.review_text|default:''|escapejs }}"></div>
                 {% empty %}
                 <div class="no-reviews"></div>
                 {% endfor %}
@@ -643,18 +646,6 @@
     </div>
 </div>
 
-<!-- REVIEWS MODAL -->
-<div id="reviewsModal" class="modal">
-    <div class="modal-content">
-        <span class="close-modal" onclick="closeReviewsModal()">&times;</span>
-        <h3 style="font-size:1.5rem; font-weight:800; color:#0f172a; margin-bottom:1.5rem;">Product Reviews</h3>
-        
-        <div id="reviewsModalBody" style="max-height: 400px; overflow-y: auto; padding-right: 10px;">
-            <!-- Rendered via JS -->
-        </div>
-    </div>
-</div>
-
 <!-- REMUNERATION MODAL -->
 <div id="remunerationModal" class="modal">
     <div class="modal-content" style="max-width: 600px;">
@@ -827,10 +818,20 @@
         const modal = document.getElementById('reviewsModal');
         const body = document.getElementById('reviewsModalBody');
         const dataBox = document.getElementById(`reviews-data-${productId}`);
-        
+
+        if (!dataBox) {
+            body.innerHTML = `
+                <div style="text-align:center; padding: 2.5rem 1rem; color: #64748b; background: #fef2f2; border-radius: 16px; border: 2px dashed #fecaca;">
+                    <p style="font-weight: 600;">Review data not found.</p>
+                </div>
+            `;
+            modal.style.display = 'flex';
+            return;
+        }
+
         let html = '';
         const reviewItems = dataBox.querySelectorAll('.review-item');
-        
+
         if (reviewItems.length === 0) {
             html = `
                 <div style="text-align:center; padding: 2.5rem 1rem; color: #64748b; background: #f8fafc; border-radius: 16px; border: 2px dashed #cbd5e1;">
