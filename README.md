@@ -241,7 +241,6 @@ We welcome contributions to improve Vendorapp! Your input helps make this projec
 
 ## 📝 License
 
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for complete details.
 
 ### What this means:
 - ✅ **Commercial use:** You can use this project commercially.
